@@ -17,3 +17,10 @@
 - **JosephRed GBA SP Touch UI:** `Built (Pending Approval)` — Portrait & landscape responsive shell (`App.tsx`) with smooth thumb-slide D-Pad, A/B, L/R, Start/Select, haptics, and desktop keyboard controls.
 - **1× / 2× / 4× Fast-Forward & Run Lock:** `Built (Pending Approval)` — Instant speed multiplier (`1× / 2× / 4×`) + one-tap `RUN` toggle holding `B` for effortless one-handed sprinting.
 - **Persistent Auto-Save & Backup:** `Built (Pending Approval)` — Automatic IndexedDB SRAM sync on in-game save & tab hide, 3 quick save-state slots, `.sav` file Export/Import, and custom `.gba` loader.
+
+## Production Hosting & Infrastructure (Railway)
+- **Production Container Build & Healthcheck:** `Built (Pending Approval)` — Multi-stage Alpine container listening on Railway edge `0.0.0.0:8080` with COOP/COEP isolation and `/health` endpoint.
+- **Continuous Deployment:** `Built (Pending Approval)` — Linked to `nevynd/pokemon-josephred@main` on Railway project `pokemon-josephred`.
+- **Live Railway Service Domain:** `Built (Pending Approval)` — Verified live at `https://pokemon-josephred-production.up.railway.app`.
+- **Custom Domain (`joseph.beenelson.com`):** `Built (Pending Approval)` — Attached to service on port 8080, awaiting user DNS CNAME & TXT records.
+

@@ -98,3 +98,19 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 - **Emulator Core:** `@thenick775/mgba-wasm` running inside WebAssembly with `SharedArrayBuffer` support (`Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp`).
 - **Mobile Controls:** Responsive portrait **JosephRed GBA SP** shell + landscape layout, multi-touch D-Pad + A/B + L/R + Start/Select, haptic feedback (`navigator.vibrate`), and keyboard bindings on desktop.
 - **Speed & Persistence:** One-tap **1× / 2× / 4× Fast-Forward** toggle, automatic `FS.syncfs` IndexedDB persistence after saves + periodic intervals, 3 quick save-state slots, and `.sav` file Export/Import backup.
+
+---
+
+## 6. Railway Production Deployment
+
+- **Railway Project:** `pokemon-josephred` (`ffd68767-561b-430d-97c3-c69b095f27e8`)
+- **Railway Service:** `pokemon-josephred` (`a40063ca-19d2-416a-8a9c-c22ce442c827`)
+- **Environment:** `production` (`e1b3fbd2-c075-4d29-8ab9-47d3556c942e`)
+- **GitHub Repository:** `nevynd/pokemon-josephred` (`main` branch, auto-deploy enabled)
+- **Deployment Status:** `SUCCESS` (Container listening on `0.0.0.0:8080`)
+- **Default Live URL:** `https://pokemon-josephred-production.up.railway.app`
+- **Custom Domain:** `https://joseph.beenelson.com` (routes to container port `8080`)
+- **DNS Records to Configure:**
+  - `CNAME joseph.beenelson.com` → `mweew3gn.up.railway.app`
+  - `TXT _railway-verify.joseph.beenelson.com` → `railway-verify=fa1ac64a5c3ab03e5d563e290f6b6132a774a9371548bbf0c6e3172fb5a590d9`
+

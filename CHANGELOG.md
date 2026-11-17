@@ -22,3 +22,9 @@
   - Rebranded Celadon Restaurant (`COIN CASE` hub) into **The Flying Saucer** (200 draught beers, UFO plates on the ceiling, EUR/USD Forex tab jokes), plus added Flying Saucer references to Oak's intro speech, Pallet Town NPCs, Celadon City sign, and Champion Brian's post-battle celebration.
 - **Railway Production Container & Healthcheck (`Dockerfile`, `web/server.mjs`):**
   - Added multi-stage Alpine `Dockerfile` at repo root, `/health` JSON healthcheck endpoint, `Content-Length` headers, and Git tracking for `web/public/roms/josephred.gba`.
+- **Live Railway Deployment & Custom Domain (`joseph.beenelson.com`):**
+  - Provisioned Railway project `pokemon-josephred` (`ffd68767-561b-430d-97c3-c69b095f27e8`) in workspace `nevynd's Projects`.
+  - Connected public repository `nevynd/pokemon-josephred` (`main` branch) with automated CI/CD container builds.
+  - Successfully built and deployed container to production (`https://pokemon-josephred-production.up.railway.app`) verified with `HTTP 200 OK` and active COOP/COEP headers.
+  - Generated and bound custom domain `joseph.beenelson.com` targeting container port 8080.
+
