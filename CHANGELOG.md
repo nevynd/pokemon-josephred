@@ -27,4 +27,11 @@
   - Connected public repository `nevynd/pokemon-josephred` (`main` branch) with automated CI/CD container builds.
   - Successfully built and deployed container to production (`https://pokemon-josephred-production.up.railway.app`) verified with `HTTP 200 OK` and active COOP/COEP headers.
   - Generated and bound custom domain `joseph.beenelson.com` targeting container port 8080.
+- **Intro Dialogue Pacing & Lore Rebalance (`rom/scripts/apply_josephred.py`):**
+  - Removed repetitive "PTC Windchill", "DNS", and "Teamwork Makes the Dreamwork" gags from the opening 2 minutes so they don't step on each other.
+  - Controls Guide now features a clean Kanto handbook orientation and sprint-to-sushi tip.
+  - Prologue Page 1 introduces foreboding of Stephane messaging during EU Forex session without burning Windchill or DNS.
+  - Oak's Speech highlights roaming under cherry blossoms and cold pints at The Flying Saucer, introducing "Teamwork Makes the Dreamwork" exactly once with dignity as Joseph's motto.
+  - Greg's intro establishes his buffoonery via tripping on mouse cords and crying lag, preserving the DNS joke specifically for the Route 12/16 Snorlax blocker and PTC Windchill for Silph Co. 11F HQ.
+
 

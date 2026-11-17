@@ -425,8 +425,8 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         intro_inc,
         "gControlsGuide_Text_Intro",
         [
-            "ISEKAI ORIENTATION FOR JOSEPH:\n",
-            "How to survive without Windchill.$",
+            "ISEKAI SURVIVAL GUIDE FOR JOSEPH:\n",
+            "A quick handbook for KANTO.$",
         ],
         max_width=40,
     )
@@ -444,7 +444,7 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         "gControlsGuide_Text_BButton",
         [
             "Cancel menus, or hold B to sprint\n",
-            "like DNS just went down in Prod!$",
+            "straight toward the sushi bar!$",
         ],
         max_width=40,
     )
@@ -459,8 +459,8 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
             "Hot coffee in your left hand, a\n",
             "spun Ninja Creami in your right.\n",
             "\n",
-            "Not a single PTC Windchill ticket\n",
-            "or DNS request in the queue.\n",
+            "Zero critical tickets in queue,\n",
+            "and Stephane hasn't called yet.\n",
             "Life is good.$",
         ],
         max_width=38,
@@ -484,11 +484,11 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         intro_inc,
         "gPikachuIntro_Text_Page3",
         [
-            "Everything fades into桜 cherry\n".replace("桜 ", ""),
+            "Everything fades into cherry\n",
             "blossoms and bright white light...\n",
             "\n",
-            "Teamwork Makes the Dreamwork!\n",
-            "Welcome to your new world, hero.\n",
+            "From IT hero to POKéMON legend.\n",
+            "Welcome to your new world.\n",
             "\n",
             "Press the A Button, and step over\n",
             "that chair like Commander Riker!$",
@@ -513,18 +513,21 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         intro_inc,
         "gOakSpeech_Text_IsInhabitedFarAndWide",
         [
-            "…runs on creatures called POKéMON,\n",
-            "not PTC Windchill databases!\p$",
+            "…is home to incredible creatures\n",
+            "called POKéMON!\p",
+            "They roam across cherry blossom\n",
+            "valleys and ancient trails,\l",
+            "living alongside us as partners.\p$",
         ],
     )
     replace_inc_block(
         intro_inc,
         "gOakSpeech_Text_IStudyPokemon",
         [
-            "Here, nobody calls at 2 AM over\n",
-            "botched DNS requests.\p",
-            "Just POKéMON, sushi, coffee,\n",
-            "and pints at The Flying Saucer!\p"
+            "Here, nobody pages you at 2 AM\n",
+            "over server outages.\p",
+            "Just POKéMON, sushi, fresh coffee,\n",
+            "and pints at The Flying Saucer!\p",
             "As a wise man always says:\n",
             "Teamwork Makes the Dreamwork!\p$",
         ],
@@ -534,8 +537,8 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         "gOakSpeech_Text_WhatWasHisName",
         [
             "And this buffoon is my grandson.\p",
-            "He once took down production by\n",
-            "deleting a live DNS zone file.\p",
+            "He trips over his mouse cord and\n",
+            "blames lag for everything.\p",
             "…Erm, what was this clown's name?$",
         ],
     )
@@ -613,11 +616,11 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         lab_text,
         "PalletTown_ProfessorOaksLab_Text_OakChoosingSquirtle",
         [
-            "OAK: Hold on—Ball #2 is ALSO\n",
+            "OAK: Hold on-Ball No.2 is ALSO\n",
             "secretly a DRATINI?!\p",
-            "Haha! Teamwork makes the\n",
-            "dreamwork! Roll with Ball #2's\l",
-            "DRATINI, {PLAYER}?$",
+            "Haha! You can never have too\n",
+            "many dragons on the roster!\l",
+            "Roll with Ball No.2, {PLAYER}?$",
         ],
     )
     replace_inc_block(
@@ -653,17 +656,17 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         "PalletTown_ProfessorOaksLab_Text_RivalDefeat",
         [
             "WHAT?! Lag! Packet loss!\n",
-            "Must be a bad DNS cache!$",
+            "I was typing on the wrong window!$",
         ],
     )
     replace_inc_block(
         lab_text,
         "PalletTown_ProfessorOaksLab_Text_RivalGoToughenMyMon",
         [
-            "{RIVAL}: Whatever! My mouse wasn't\n",
-            "plugged in anyway!\p",
-            "Don't hit me with 'Teamwork Makes\n",
-            "the Dreamwork'! Smell ya later!$",
+            "{RIVAL}: Whatever! My mouse was\n",
+            "unplugged the whole time!\p",
+            "I'm heading to Route 22 to grind!\n",
+            "Smell ya later!$",
         ],
     )
     print("[OK] Patched Bus-kun Intro, All-3-Dratini Lab & Buffoon Greg")
