@@ -73,6 +73,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 | Prologue Flow & Text Fit | `data/text/new_game_intro.inc` | All 3 Pikachu intro pages formatted to strictly 5–7 lines with native `\n` (no `\l`), fitting the 28×15 tile window without clipping so `A` cleanly advances pages |
 | Help System Suppression | `src/new_game.c`, `src/help_system_util.c` | Default button mode set to `OPTIONS_BUTTON_MODE_LR`; `RunHelpSystemCallback` hard-returns 0 to eliminate accidental journal popups |
 | Quest Log Flashback Bypass | `src/quest_log.c` | `TryStartQuestLogPlayback` bypasses recorded scenes and directly executes `CB2_ContinueSavedGame` |
+| Battle Back-Sprite & Palette | `graphics/trainers/back_pics/red_back_pic.png`, `graphics/trainers/palettes/red_back_pic.pal` | Custom 64×320 5-frame battle animation for Joseph (stockier build, fluffy hair, no cap, goatee shadow, charcoal T-shirt, jeans, Poké Ball throw sequence) paired with 16-color GBA palette |
 
 ---
 

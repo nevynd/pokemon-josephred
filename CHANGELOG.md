@@ -55,6 +55,12 @@
   - Patched `RunHelpSystemCallback` in `src/help_system_util.c` to immediately return `0`, permanently blocking the Help System menu from intercepting gameplay during 4× fast-forward or shoulder button contact.
   - Patched `TryStartQuestLogPlayback` in `src/quest_log.c` to skip replay and resume game state immediately.
   - Remapped desktop keyboard interaction: mapped `KeyE` to GBA `A` (natural WASD interact key) and moved GBA `R` to `KeyR`.
+- **Authentic Joseph Battle Back-Sprite & 16-Color Palette (`rom/overrides/graphics/trainers/back_pics/red_back_pic.png`, `red_back_pic.pal`, `rom/scripts/convert_battle_back.py`):**
+  - Replaced the placeholder Ash recolor ("ash but bluish with crosshatching") with a custom 5-frame GBA battle animation sprite designed for Joseph.
+  - Features Joseph's mature, stockier silhouette with broad shoulders, fluffy textured dark hair (no cap), clean goatee stubble visible in profile, solid charcoal crewneck T-shirt, and blue denim jeans.
+  - 5-frame animation cycle: Frame 0 (Stance / Slide-in), Frame 1 (Wind-up), Frame 2 (High Cocked Stance), Frame 3 (Full Extension Throw), Frame 4 (Follow-through / Ready).
+  - Created dedicated 16-color GBA palette `red_back_pic.pal` matching Joseph's front trainer card palette.
+
 
 
 

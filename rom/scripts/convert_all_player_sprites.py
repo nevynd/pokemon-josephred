@@ -175,7 +175,6 @@ def main():
         ("red_fish.png", "graphics/object_events/pics/people/red_fish.png", "overworld", 32, 32, ['S', 'N', 'W', 'W']),
         ("red_item.png", "graphics/object_events/pics/people/red_item.png", "overworld", 16, 32, ['S']),
         ("red_vs_seeker_bike.png", "graphics/object_events/pics/people/red_vs_seeker_bike.png", "overworld", 32, 32, ['S', 'N', 'W', 'S', 'N', 'W']),
-        ("red_back_pic.png", "graphics/trainers/back_pics/red_back_pic.png", "back", 64, 64, []),
         ("player_icon_red.png", "graphics/region_map/player_icon_red.png", "icon", 16, 16, []),
     ]
 
