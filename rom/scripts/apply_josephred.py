@@ -256,6 +256,52 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "Solo Haunter -> Gengar Lv.36",
     )
 
+    # 8. Button Mode -> OPTIONS_BUTTON_MODE_LR (disable accidental Help System popups on L/R)
+    must_replace(
+        root / "src/new_game.c",
+        "    gSaveBlock2Ptr->regionMapZoom = FALSE;\n"
+        "    gSaveBlock2Ptr->optionsButtonMode = OPTIONS_BUTTON_MODE_HELP;",
+        "    gSaveBlock2Ptr->regionMapZoom = FALSE;\n"
+        "    gSaveBlock2Ptr->optionsButtonMode = OPTIONS_BUTTON_MODE_LR;",
+        "Default button mode -> OPTIONS_BUTTON_MODE_LR",
+    )
+
+    # 9. Permanently disable Help System journal callback
+    must_replace(
+        root / "src/help_system_util.c",
+        "u8 RunHelpSystemCallback(void)\n"
+        "{\n"
+        "    s32 i;\n"
+        "\n"
+        "    switch (sVideoState.state)",
+        "u8 RunHelpSystemCallback(void)\n"
+        "{\n"
+        "    s32 i;\n"
+        "    return 0; // Permanently disabled: prevent Help System journal popups\n"
+        "\n"
+        "    switch (sVideoState.state)",
+        "Disable RunHelpSystemCallback",
+    )
+
+    # 10. Disable Quest Log replay on continue (instant load into overworld)
+    must_replace(
+        root / "src/quest_log.c",
+        "    if (sNumScenes != 0)\n"
+        "    {\n"
+        "        gHelpSystemEnabled = FALSE;\n"
+        "        Task_BeginQuestLogPlayback(taskId);\n"
+        "        DestroyTask(taskId);\n"
+        "    }\n"
+        "    else\n"
+        "    {\n"
+        "        SetMainCallback2(CB2_ContinueSavedGame);\n"
+        "        DestroyTask(taskId);\n"
+        "    }",
+        "    SetMainCallback2(CB2_ContinueSavedGame);\n"
+        "    DestroyTask(taskId);",
+        "Disable Quest Log playback on continue",
+    )
+
 
 def patch_trainers(root: pathlib.Path) -> None:
     tr_h = root / "src/data/trainers.h"
@@ -455,15 +501,13 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         intro_inc,
         "gPikachuIntro_Text_Page1",
         [
-            "8:02 AM - EU Forex Session Open.\n",
-            "EUR/USD is printing green candles.\n",
-            "Hot coffee in your left hand, a\n",
-            "spun Ninja Creami in your right.\n",
+            "8:02 AM - EU Forex session open.\n",
+            "EUR/USD printing green candles.\n",
+            "Hot coffee in hand, Creami spun.\n",
             "\n",
-            "Zero critical tickets in queue,\n",
-            "and Stephane's merger domain\l",
-            "migration cutover is next week!\n",
-            "Life is good.$",
+            "Zero critical tickets in queue.\n",
+            "Stephane's merger domain cutover\n",
+            "is next week. Life is good.$",
         ],
         max_width=38,
     )
@@ -476,9 +520,7 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
             "around the corner out of nowhere!\n",
             "\n",
             "Classic Isekai Bus-kun claims\n",
-            "another absolute legend before\n",
-            "you can even close your EUR/USD\n",
-            "position!$",
+            "another absolute IT legend!$",
         ],
         max_width=38,
     )
@@ -489,11 +531,9 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
             "Everything fades into cherry\n",
             "blossoms and bright white light...\n",
             "\n",
-            "From IT hero to POKéMON legend.\n",
-            "Welcome to your new world.\n",
-            "\n",
-            "Press the A Button, and step over\n",
-            "that chair like Commander Riker!$",
+            "From IT hero to POKéMON legend:\n",
+            "Welcome to your new world!\n",
+            "Step over that chair like Riker!$",
         ],
         max_width=38,
     )

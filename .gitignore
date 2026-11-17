@@ -8,7 +8,9 @@ rom/build/
 *.sav
 *.ss*
 
-# Keep compiled ROM in web/public/roms/ ignored from git if rebuilt in CI/Docker,
+# Local test scripts & scratch files
+scratch/
+
 # or allow explicit git add -f if desired:
 web/node_modules/
 web/dist/

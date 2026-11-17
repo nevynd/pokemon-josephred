@@ -70,6 +70,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 | Solo Trade Evos | `src/data/pokemon/evolution.h` | Kadabra (Lv. 36), Haunter (Lv. 36), Machoke (Lv. 38), Graveler (Lv. 38) evolve by level-up |
 | Solo 151 Wild Mons | `src/data/wild_encounters.json` | Merges *LeafGreen* exclusives onto canonical FireRed routes + adds wild Bulbasaur (Viridian Forest), Charmander (Route 4), Squirtle (Route 24) |
 | Bus-kun Mew | `data/maps/SSAnne_Exterior/map.json`, `scripts.inc` | Inspecting the Vermilion Harbor truck (`x=55..57, y=3`) triggers the **Isekai Bus-kun** gag + wild Lv. 30 **Mew** |
+| Prologue Flow & Text Fit | `data/text/new_game_intro.inc` | All 3 Pikachu intro pages formatted to strictly 5–7 lines with native `\n` (no `\l`), fitting the 28×15 tile window without clipping so `A` cleanly advances pages |
+| Help System Suppression | `src/new_game.c`, `src/help_system_util.c` | Default button mode set to `OPTIONS_BUTTON_MODE_LR`; `RunHelpSystemCallback` hard-returns 0 to eliminate accidental journal popups |
+| Quest Log Flashback Bypass | `src/quest_log.c` | `TryStartQuestLogPlayback` bypasses recorded scenes and directly executes `CB2_ContinueSavedGame` |
 
 ---
 
@@ -97,7 +100,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 ## 5. Web GBA SP Player (`/web`)
 
 - **Emulator Core:** `@thenick775/mgba-wasm` running inside WebAssembly with `SharedArrayBuffer` support (`Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp`).
-- **Mobile Controls:** Responsive portrait **JosephRed GBA SP** shell + landscape layout, multi-touch D-Pad + A/B + L/R + Start/Select, haptic feedback (`navigator.vibrate`), and keyboard bindings on desktop.
+- **Mobile Controls:** Responsive portrait **JosephRed GBA SP** shell + landscape layout, multi-touch D-Pad + A/B + L/R + Start/Select, haptic feedback (`navigator.vibrate`), and desktop keyboard bindings (WASD movement, `E`/`Z`/`J` for `A`, `X`/`K`/`C` for `B`, `Q`/`U` for `L`, `R`/`I` for `R`, `Enter` for `Start`, `Backspace` for `Select`).
 - **Speed & Persistence:** One-tap **1× / 2× / 4× Fast-Forward** toggle, automatic `FS.syncfs` IndexedDB persistence after saves + periodic intervals, 3 quick save-state slots, and `.sav` file Export/Import backup.
 
 ---

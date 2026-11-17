@@ -47,6 +47,14 @@
   - Battle back sprite (`red_back_pic.png` 64×320, 5 frames 64×64 throwing animation).
   - Town Map player head icon (`player_icon_red.png` 16×16).
   - Recompiled into 16 MB production ROM (`web/public/roms/josephred.gba`) in 2.9 seconds.
+- **Prologue Layout Fit & Screen Hop Fix (`rom/scripts/apply_josephred.py`):**
+  - Formatted all 3 Pikachu intro pages to strictly 5–7 lines with native `\n` linebreaks, eliminating mid-page `\l` scroll escapes.
+  - The static 28×15 tile window now displays all lines at once with zero clipping, ensuring pressing `A` cleanly turns pages as designed.
+- **Help System & Quest Log Journal Disablement (`src/new_game.c`, `src/help_system_util.c`, `src/quest_log.c`, `web/src/App.tsx`):**
+  - Switched default button mode in `new_game.c` from `OPTIONS_BUTTON_MODE_HELP` to `OPTIONS_BUTTON_MODE_LR`.
+  - Patched `RunHelpSystemCallback` in `src/help_system_util.c` to immediately return `0`, permanently blocking the Help System menu from intercepting gameplay during 4× fast-forward or shoulder button contact.
+  - Patched `TryStartQuestLogPlayback` in `src/quest_log.c` to skip replay and resume game state immediately.
+  - Remapped desktop keyboard interaction: mapped `KeyE` to GBA `A` (natural WASD interact key) and moved GBA `R` to `KeyR`.
 
 
 
