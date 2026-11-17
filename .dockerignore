@@ -1,0 +1,6 @@
+.git
+rom
+scripts
+web/node_modules
+web/dist
+*.sav

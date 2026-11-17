@@ -1,0 +1,31 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    binutils-arm-none-eabi \
+    git \
+    ca-certificates \
+    libpng-dev \
+    pkg-config \
+    zlib1g-dev \
+    perl \
+    python3 \
+    python3-pil \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+
+# Clone pokefirered and agbcc at pinned/clean upstream state and precompile baseline objects
+RUN git clone --depth 1 https://github.com/pret/pokefirered.git /opt/pokefirered \
+    && git clone --depth 1 https://github.com/pret/agbcc.git /opt/agbcc \
+    && cd /opt/agbcc \
+    && ./build.sh \
+    && ./install.sh /opt/pokefirered \
+    && rm -rf /opt/agbcc
+
+WORKDIR /opt/pokefirered
+
+# Build host tools + full baseline ROM once so incremental mod builds take ~3 seconds
+RUN make tools -j"$(nproc)" && make -j"$(nproc)"

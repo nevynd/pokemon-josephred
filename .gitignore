@@ -1,0 +1,18 @@
+# Upstream reference clone & temporary ROM build artifacts
+rom/upstream-pokefirered/
+rom/build/
+*.gba
+!web/public/roms/josephred.gba
+*.elf
+*.map
+*.sav
+*.ss*
+
+# Keep compiled ROM in web/public/roms/ ignored from git if rebuilt in CI/Docker,
+# or allow explicit git add -f if desired:
+web/node_modules/
+web/dist/
+.DS_Store
+Thumbs.db
+.env
+.env.*
