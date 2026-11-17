@@ -460,7 +460,8 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
             "spun Ninja Creami in your right.\n",
             "\n",
             "Zero critical tickets in queue,\n",
-            "and Stephane hasn't called yet.\n",
+            "and Stephane's merger domain\l",
+            "migration cutover is next week!\n",
             "Life is good.$",
         ],
         max_width=38,
@@ -793,48 +794,50 @@ def patch_lore_and_boss_gauntlet(root: pathlib.Path) -> None:
         ],
     )
 
-    # 4. Windchill HQ (Silph Co. 11F) + Recurring Menace STEPHANE + CHARLES B in Saffron!
+    # 4. Domain Migration War Room (Silph Co. 11F) + Recurring Menace STEPHANE + CHARLES B in Saffron!
     silph_txt = root / "data/maps/SilphCo_11F/text.inc"
     replace_inc_block(
         silph_txt,
         "SilphCo_11F_Text_FloorSign",
         [
-            "PTC WINDCHILL HEAD OFFICE - 11F\n",
-            "DB MAINTENANCE IN PROGRESS$",
+            "DOMAIN MIGRATION WAR ROOM - 11F\n",
+            "MERGER CUTOVER IN PROGRESS$",
         ],
     )
     replace_inc_block(
         silph_txt,
         "SilphCo_11F_Text_GiovanniIntro",
         [
-            "STEPHANE: Ah, mon ami {PLAYER}!\n",
-            "Mais écoute—listen to me!\p",
-            "Why are you touching my PTC\n",
-            "Windchill database server?!\p",
-            "Yes, I pushed a schema update at\n",
-            "4:58 PM on Friday! C'est normal!\p",
-            "Stop smiling and saying 'Teamwork\n",
-            "Makes the Dreamwork'! En garde!$",
+            "STEPHANE: Ah, {PLAYER}, my friend!\n",
+            "Listen to me carefully!\p",
+            "Why are you questioning my domain\n",
+            "migration schedule?\p",
+            "Yes, I scheduled the cutover for\n",
+            "4:58 PM on Friday! Why not?\l",
+            "It gives us the whole weekend!\p",
+            "Stop smiling and telling me\n",
+            "'Teamwork Makes the Dreamwork'!\l",
+            "Let's see what you've got!$",
         ],
     )
     replace_inc_block(
         silph_txt,
         "SilphCo_11F_Text_GiovanniDefeat",
         [
-            "Mon Dieu!! Sacré bleu!\n",
-            "My Windchill vault rolled back!$",
+            "Unbelievable!\n",
+            "My migration batch failed!$",
         ],
     )
     replace_inc_block(
         silph_txt,
         "SilphCo_11F_Text_GiovanniPostBattle",
         [
-            "STEPHANE: Bah! Incroyable!\n",
-            "You fixed the DB lock AND talked\l",
-            "my ear off politely for an hour!\p",
-            "Mark my words, {PLAYER}, I will\n",
-            "open 47 urgent tickets in Viridian!\l",
-            "Au revoir!$",
+            "STEPHANE: Look at you.\n",
+            "You fixed the trust relationships\l",
+            "and talked to me for an hour!\p",
+            "You are entirely too nice,\n",
+            "{PLAYER}. But this merger is not\l",
+            "finished yet! We will talk again!$",
         ],
     )
     replace_inc_block(
@@ -842,10 +845,10 @@ def patch_lore_and_boss_gauntlet(root: pathlib.Path) -> None:
         "SilphCo_11F_Text_ThanksForSavingMeDearBoy",
         [
             "VP: {PLAYER}! Thank goodness!\n",
-            "You saved PTC Windchill HQ!\p",
-            "Between STEPHANE's Friday deploy\n",
+            "You saved our domain controllers!\p",
+            "Between STEPHANE's Friday cutover\n",
             "and {RIVAL} unplugging the SAN,\l",
-            "production was toast!\p",
+            "our forest was completely down!\p",
             "Take our ultimate admin tool!$",
         ],
     )
@@ -857,19 +860,22 @@ def patch_lore_and_boss_gauntlet(root: pathlib.Path) -> None:
             hideout_txt,
             "RocketHideout_B4F_Text_GiovanniIntro",
             [
-                "STEPHANE: Hoh! {PLAYER}, mon ami!\n",
+                "STEPHANE: Ah, {PLAYER}, my friend!\n",
                 "Still trading EUR/USD on break?\p",
-                "I just migrated CELADON's Forex\n",
-                "feed onto an unindexed Windchill\l",
-                "table! Magnifique, non?!$",
+                "Listen to me: I am running the\n",
+                "merger domain migration here.\l",
+                "Everything is under control!\p",
+                "So what if cross-forest trusts\n",
+                "broke and SID history is corrupt?\l",
+                "It will replicate in 15 minutes!$",
             ],
         )
         replace_inc_block(
             hideout_txt,
             "RocketHideout_B4F_Text_GiovanniDefeat",
             [
-                "Non! Impossible!\n",
-                "How do you stay so polite?!$",
+                "Impossible!\n",
+                "Why do you always stay so calm?!$",
             ],
         )
 
@@ -879,20 +885,38 @@ def patch_lore_and_boss_gauntlet(root: pathlib.Path) -> None:
             vir_gym_txt,
             "ViridianCity_Gym_Text_GiovanniIntro",
             [
-                "STEPHANE: Welcome to my final\n",
-                "change-control board, {PLAYER}!\p",
-                "No coffee, no Ninja Creami, and\n",
-                "ZERO database indexes allowed!\p",
-                "Prepare to be driven insane one\n",
-                "last time, mon ami!{PLAY_BGM}{MUS_ENCOUNTER_GYM_LEADER}$",
+                "STEPHANE: Welcome to the final\n",
+                "domain migration review, {PLAYER}!\p",
+                "I demoted the legacy domain\n",
+                "controllers, purged the DNS zones,\l",
+                "and reset all user passwords!\p",
+                "They are panicking, but I told\n",
+                "them: trust the process!\p",
+                "Let's see if your teamwork can\n",
+                "survive this cutover!{PLAY_BGM}{MUS_ENCOUNTER_GYM_LEADER}$",
             ],
         )
         replace_inc_block(
             vir_gym_txt,
             "ViridianCity_Gym_Text_GiovanniDefeat",
             [
-                "zut alors! My tickets—resolved!\n",
-                "Take the EARTHBADGE, {PLAYER}!$",
+                "Incredible...\n",
+                "You migrated the whole enterprise\l",
+                "without a second of downtime?!$",
+            ],
+        )
+        replace_inc_block(
+            vir_gym_txt,
+            "ViridianCity_Gym_Text_GiovanniPostBattle",
+            [
+                "STEPHANE: Ah, {PLAYER}...\n",
+                "You always manage to clean up my\l",
+                "messes with a smile on your face.\p",
+                "Take this EARTH BADGE.\n",
+                "You earned it, my friend.\p",
+                "Maybe your 'Teamwork Makes the\n",
+                "Dreamwork' really is true.\l",
+                "Now go to INDIGO PLATEAU!$",
             ],
         )
 

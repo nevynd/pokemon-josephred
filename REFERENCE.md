@@ -60,6 +60,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 |---|---|---|
 | Title Screen | `graphics/title_screen/firered/game_title_logo.png` | Custom brushed-chrome **JOSEPHRED VERSION** badge in non-overlapping tile box `(176, 8, 256, 40)` |
 | Intro Species | `src/oak_speech.c` | `INTRO_SPECIES` changed to `SPECIES_DRATINI` |
+| Player Graphics (Full Replacement) | `graphics/oak_speech/red/`, `graphics/trainers/front_pics/`, `graphics/object_events/pics/people/red_*.png`, `graphics/trainers/back_pics/red_back_pic.png`, `graphics/region_map/player_icon_red.png` | Ash completely replaced by **Joseph** across all modes: 64×96 Oak intro platform, 64×64 Trainer Card, overworld walking/running/cycling/surfing/fishing sheets, 5-frame battle back-sprite, and 16×16 Town Map head icon |
 | Default Names | `src/oak_speech.c`, `data/text/new_game_intro.inc` | Player defaults to **JOSEPH** (`JPATE` alt); Rival defaults to **GREG** (`BUFFOON` alt) |
 | All 3 Balls = Dratini | `PalletTown_ProfessorOaksLab/scripts.inc`, `src/field_specials.c`, `src/wild_pokemon_area.c` | All 3 Poké Balls on Oak's table secretly yield Lv. 5 **Dratini** with escalating inspection gags |
 | Dratini Balance | `src/data/pokemon/level_up_learnsets.h`, `evolution.h` | Learns **Twister** (40 BP Dragon) at Lv. 5; Dragonair evolves into **Dragonite** at Lv. 48 (down from 55) |
@@ -76,10 +77,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 
 | In-Game Role | Cast / Reference | Location / Trigger |
 |---|---|---|
-| Hero | **JOSEPH** (*"Teamwork Makes the Dreamwork!"*) | Playable protagonist; NPCs react to his friendly 30–45 minute chats |
+| Hero | **JOSEPH** (*"Teamwork Makes the Dreamwork!"*) | Playable protagonist across all modes: Oak intro, Trainer Card, all overworld movements, battle back-sprite, and Town Map icon |
 | Opening Scene | **Bus-kun Isekai** + **EU `EUR/USD` Forex** | 3-page prologue + Prof. Oak's intro speech |
 | Buffoon Rival | **GREG** | All Rival encounters (blames lag, unplugged mice, & DNS; disqualifies himself before Champion) |
-| Recurring Menace | **STEPHANE** (male, French/African-inflected cadence) | Rocket Hideout B4F, PTC Windchill HQ (Silph Co. 11F), & Viridian Gym |
+| Recurring Menace | **STEPHANE** (male, French/African-inflected cadence) | Senior IT Admin running the enterprise merger domain migration; cross-forest trusts, 4:58 PM Friday cutovers, 15-minute replication. Encounters at Rocket Hideout B4F, PTC Windchill HQ (Silph Co. 11F), & Viridian Gym |
 | Snorlax Neighbor Boss | **ERICA L** | Celadon City Gym Leader (right next to Route 16 DNS Snorlax) |
 | Windchill Area Boss | **CHARLES B** | Saffron City Gym Leader (next door to PTC Windchill / Silph Co. 11F) |
 | Elite Four #1 | **JESSICA** | Indigo Plateau — Room 1 (Lorelei slot) |

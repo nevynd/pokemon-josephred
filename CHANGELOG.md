@@ -33,5 +33,16 @@
   - Prologue Page 1 introduces foreboding of Stephane messaging during EU Forex session without burning Windchill or DNS.
   - Oak's Speech highlights roaming under cherry blossoms and cold pints at The Flying Saucer, introducing "Teamwork Makes the Dreamwork" exactly once with dignity as Joseph's motto.
   - Greg's intro establishes his buffoonery via tripping on mouse cords and crying lag, preserving the DNS joke specifically for the Route 12/16 Snorlax blocker and PTC Windchill for Silph Co. 11F HQ.
+- **Stephane Senior IT Admin Persona & Merger Domain Migration Lore (`rom/scripts/apply_josephred.py`):**
+  - Grounded Stephane's character in his true real-world enterprise role: the senior IT administrator running a high-stakes corporate merger domain migration across forests.
+  - Stripped away stereotypical Parisian clichés (*sacré bleu*, *mon dieu*, etc.) in favor of authentic French-African senior admin cadence (*"Listen to me, my friend..."*, *"It will replicate in 15 minutes, why do you worry so much?"*, scheduling cutovers at 4:58 PM on Friday, breaking SID history, and cross-forest trusts).
+  - Encounters at Rocket Hideout B4F, Silph Co. 11F, and Viridian Gym now chronicle the unfolding domain cutover chaos.
+- **Player Character Graphics Replacement (Ash → Joseph) Across All GBA Formats (`rom/scripts/convert_all_player_sprites.py`):**
+  - Fully replaced Ash/Red across all gameplay graphics with Joseph (dark fluffy hair, no cap, friendly face with goatee shadow, charcoal crewneck T-shirt with chest Poké Ball, blue jeans, and sneakers).
+  - Overworld walking, running, biking, surfing, fishing, item-holding, and VS Seeker cycles: `red_normal.png`, `red_surf_run.png`, `red_bike.png`, `red_surf.png`, `red_fish.png`, `red_item.png`, `red_vs_seeker_bike.png`.
+  - Battle back sprite (`red_back_pic.png` 64×320, 5 frames 64×64 throwing animation).
+  - Town Map player head icon (`player_icon_red.png` 16×16).
+  - Recompiled into 16 MB production ROM (`web/public/roms/josephred.gba`) in 2.9 seconds.
+
 
 
