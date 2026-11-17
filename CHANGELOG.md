@@ -27,6 +27,10 @@
   - Connected public repository `nevynd/pokemon-josephred` (`main` branch) with automated CI/CD container builds.
   - Successfully built and deployed container to production (`https://pokemon-josephred-production.up.railway.app`) verified with `HTTP 200 OK` and active COOP/COEP headers.
   - Generated and bound custom domain `joseph.beenelson.com` targeting container port 8080.
+- **Cache Busting & Cartridge Refresh Fix (`web/server.mjs`, `web/src/App.tsx`):**
+  - Added dynamic timestamp query parameter (`?t=${Date.now()}`) and `{ cache: 'no-store' }` to ROM fetch in `App.tsx`.
+  - Configured `web/server.mjs` to serve `.gba` cartridges and `index.html` with `Cache-Control: no-cache, no-store, must-revalidate`, `Pragma: no-cache`, and `Expires: 0`.
+  - Replaced legacy `gNameChoice_Ash` with `JOE$` in `new_game_intro.inc` so the name "ASH" is eliminated from the new game selection menu.
 - **Intro Dialogue Pacing & Lore Rebalance (`rom/scripts/apply_josephred.py`):**
   - Removed repetitive "PTC Windchill", "DNS", and "Teamwork Makes the Dreamwork" gags from the opening 2 minutes so they don't step on each other.
   - Controls Guide now features a clean Kanto handbook orientation and sprint-to-sushi tip.

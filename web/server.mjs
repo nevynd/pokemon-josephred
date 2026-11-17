@@ -46,8 +46,12 @@ const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', MIME_TYPES[ext] || 'application/octet-stream');
     res.setHeader('Content-Length', stat.size);
 
-    if (ext === '.wasm' || ext === '.gba') {
-      res.setHeader('Cache-Control', 'public, max-age=3600');
+    if (ext === '.wasm') {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (ext === '.gba' || ext === '.html') {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
     }
 
     if (req.method === 'HEAD') {

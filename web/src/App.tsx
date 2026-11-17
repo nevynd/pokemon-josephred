@@ -182,7 +182,7 @@ export function App() {
         });
 
         setBootMessage('Loading Pokémon JosephRed Cartridge...');
-        const resp = await fetch(ROM_URL);
+        const resp = await fetch(`${ROM_URL}?t=${Date.now()}`, { cache: 'no-store' });
         if (!resp.ok) {
           throw new Error(`Failed to fetch ROM (${resp.status} ${resp.statusText})`);
         }

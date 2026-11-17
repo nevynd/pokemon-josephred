@@ -415,6 +415,7 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
     # Name presets: JOSEPH first for player, GREG first for buffoon rival
     replace_inc_block(intro_inc, "gNameChoice_Red", ["JOSEPH$"])
     replace_inc_block(intro_inc, "gNameChoice_Fire", ["JPATE$"])
+    replace_inc_block(intro_inc, "gNameChoice_Ash", ["JOE$"])
     replace_inc_block(intro_inc, "gNameChoice_Green", ["GREG$"])
     replace_inc_block(intro_inc, "gNameChoice_Gary", ["BUFFOON$"])
     replace_inc_block(intro_inc, "gNameChoice_Kaz", ["GREGORY$"])
