@@ -13,17 +13,27 @@ h:\JPate
 ├── scripts/
 │   └── build-rom.ps1                 # Deterministic Docker ROM build & extraction script
 ├── rom/
+│   ├── assets/
+│   │   ├── joseph_trainer_source.jpg     # Source art for Oak Speech & Trainer Card
+│   │   └── joseph_battle_back_source.jpg # Source art for 5-frame Battle Back-Sprite
 │   ├── docker/
 │   │   ├── Dockerfile.base           # Cached Ubuntu 22.04 + agbcc + baseline pokefirered objects
 │   │   └── Dockerfile                # Incremental mod layer (~3s rebuilds)
 │   ├── overrides/
 │   │   └── graphics/
 │   │       ├── title_screen/firered/game_title_logo.png
-│   │       └── oak_speech/red/       # Optional custom 64x96 portrait (pic.png + pal.pal)
+│   │       ├── oak_speech/red/       # Custom 64x96 portrait (pic.png + pal.pal)
+│   │       ├── trainers/             # Front card, 5-frame battle back_pic, & 16-color palettes
+│   │       ├── object_events/pics/people/ # All 7 overworld Joseph sprite sheets
+│   │       ├── region_map/           # 16x16 Town Map Joseph head icon
+│   │       └── pokemon/squirtle/     # Front + back Squirtle Squad sunglasses sprites & palette
 │   ├── scripts/
 │   │   ├── apply_josephred.py        # Validated C/JSON/ASM patcher + GBA textbox width linter
 │   │   ├── render_title_badge.py     # Chrome 'JOSEPHRED VERSION' title logo generator
-│   │   └── convert_portrait.py       # Photo -> GBA 31-color 8bpp Oak Speech portrait converter
+│   │   ├── render_squirtle_shades.py # Crisp jet-black Squirtle Squad front/back shades generator
+│   │   ├── convert_portrait.py       # Photo -> GBA 31-color 8bpp Oak Speech portrait converter
+│   │   ├── convert_battle_back.py    # 5-frame 64x320 GBA battle back-sprite generator
+│   │   └── convert_all_player_sprites.py # Dynamic head-bounds converter for all 7 overworld sheets
 │   └── upstream-pokefirered/         # Local read-only upstream reference (gitignored)
 └── web/
     ├── server.mjs                    # Production HTTP server with COOP/COEP headers for WASM threads
@@ -69,17 +79,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 | Reusable TMs | `src/party_menu.c` | TMs (`< ITEM_HM01`) are never consumed upon teaching a move |
 | Solo Trade Evos | `src/data/pokemon/evolution.h` | Kadabra (Lv. 36), Haunter (Lv. 36), Machoke (Lv. 38), Graveler (Lv. 38) evolve by level-up |
 | Solo 151 Wild Mons | `src/data/wild_encounters.json` | Merges *LeafGreen* exclusives onto canonical FireRed routes + adds wild Bulbasaur (Viridian Forest), Charmander (Route 4), Squirtle (Route 24) |
-| Bus-kun Mew | `data/maps/SSAnne_Exterior/map.json`, `scripts.inc` | Inspecting the Vermilion Harbor truck (`x=55..57, y=3`) triggers the **Isekai Bus-kun** gag + wild Lv. 30 **Mew** |
+| Bus-kun Mew | `data/maps/SSAnne_Exterior/map.json`, `scripts.inc` | Inspecting the Vermilion Harbor truck (`x=55..57, y=3`) triggers the **Isekai Bus-kun** gag + wild Lv. 30 **Mew** (`FLAG_WONDER_CARD_UNUSED_8`) |
 | Prologue Flow & Text Fit | `data/text/new_game_intro.inc` | All 3 Pikachu intro pages formatted to strictly 5–7 lines with native `\n` (no `\l`), fitting the 28×15 tile window without clipping so `A` cleanly advances pages |
 | Help System Suppression | `src/new_game.c`, `src/help_system_util.c` | Default button mode set to `OPTIONS_BUTTON_MODE_LR`; `RunHelpSystemCallback` hard-returns 0 to eliminate accidental journal popups |
 | Quest Log Flashback Bypass | `src/quest_log.c` | `TryStartQuestLogPlayback` bypasses recorded scenes and directly executes `CB2_ContinueSavedGame` |
-| Battle Back-Sprite & Palette | `graphics/trainers/back_pics/red_back_pic.png`, `graphics/trainers/palettes/red_back_pic.pal` | Custom 64×320 5-frame battle animation for Joseph (stockier build, fluffy hair, no cap, goatee shadow, charcoal T-shirt, jeans, Poké Ball throw sequence) paired with 16-color GBA palette |
-| Auto-Run & Movement Engine | `src/field_player_avatar.c`, `src/new_game.c`, `web/src/App.tsx` | Removed prerequisite flag check on `heldKeys & B_BUTTON` so sprint is active for all saves; decoupled emulator React lifecycle so toggling `RUN` never reboots game |
+| Battle Back-Sprite & Palette | `graphics/trainers/back_pics/red_back_pic.png`, `graphics/trainers/palettes/red_back_pic.pal` | Custom 64×320 5-frame battle animation for Joseph (stockier build, fluffy hair, no cap, goatee shadow, charcoal T-shirt, jeans, clean Poké Ball throw sequence) paired with 16-color GBA palette |
+| Hardware-Masked Auto-Run Engine | `src/main.c`, `src/field_player_avatar.c`, `web/src/App.tsx` | `ReadKeys()` detects & strips `L+R` chord into `gAutoRunEnabled` so `RUN` sprints automatically (hold `B` to walk) without breaking `B` in menus or cancelling evolutions; isolated React boot lifecycle |
 | Battle Bag Direct to Balls | `src/item_menu.c`, `src/menu_helpers.c` | `CB2_BagMenuFromBattle` defaults to `OPEN_BAG_POKEBALLS`; unconditional L/R pocket switching enabled across all button modes |
-| Starter Poké Balls & Mart Flow | `src/new_game.c`, `PalletTown_ProfessorOaksLab/scripts.inc`, `ViridianCity_Mart/scripts.inc`, `Route1/scripts.inc` | Starts with 20 Poké Balls & 5 Potions; Oak gives 20 Balls with Dratini; Route 1 clerk gives 10 Balls; Viridian Mart sells inventory immediately |
-| Dick Biters Inside Joke | `src/data/text/species_names.h`, `src/data/pokemon/pokedex_entries.h`, `pokedex_text_fr.h`, `Route1/text.inc` | Rattata & Raticate renamed to **DICK BITER**; category set to `"DICK BITER"`; custom Pokédex entries & Route 1 warnings added |
-| Squirtle Squad Meme Shades | `graphics/pokemon/squirtle/front.png`, `src/data/items.json`, `src/data/pokemon/species_info.h` | Iconic sharp pointy anime sunglasses overlaid on Squirtle's battle front sprite; `ITEM_BLACK_GLASSES` renamed to `"SQUAD SHADES"` and held by wild Squirtles |
-| Classic Anime Iconic Moments | `Route4_PokemonCenter_1F/text.inc`, `CeruleanCity_Gym/text.inc`, `Route25_SeaCottage/text.inc`, `Route24/text.inc`, `CeruleanCity_PokemonCenter_1F/text.inc` | S.S. Anne Magikarp salesman scam, Misty's charred bicycle in Cerulean Gym, Bill's lighthouse giant Dragonite mystery, Camper Shane Squirtle Squad encounter, and Damian abandoning Charmander on the rock |
+| Starter Poké Balls & Oak's Lab Cutscene | `src/new_game.c`, `PalletTown_ProfessorOaksLab/scripts.inc`, `ViridianCity_Mart/scripts.inc`, `Route1/scripts.inc` | Starts with 10 backup Poké Balls & 5 Potions; Oak formally gifts 20 Balls after Dratini; `RivalTakesStarter` closes cleanly (`waitbuttonpress` + `closemessage`); Route 1 clerk gives 10 Balls; Viridian Mart sells inventory immediately |
+| Dick Biters Classification | `src/data/pokemon/pokedex_entries.h`, `pokedex_text_fr.h`, `Route1/text.inc`, `Route3/text.inc` | `RATTATA` & `RATICATE` keep canonical species names; Pokédex category set to `"DICK BITER"` (`DICK BITER POKéMON`); custom Pokédex entries & Kanto NPC/trainer dialogue refer to them as *"Dick Biters"* |
+| Squirtle Squad Meme Shades | `graphics/pokemon/squirtle/front.png`, `back.png`, `normal.pal`, `src/data/items.json`, `src/data/pokemon/species_info.h` | Crisp jet-black (`#101010`) pointed anime sunglasses + white/silver glare on both front & back Squirtle battle sprites; `ITEM_BLACK_GLASSES` renamed to `"SQUAD SHADES"` (`HOLD_EFFECT_WATER_POWER`, +20% Water power) |
+| 8 Playable 90s Anime Events | `Route1`, `Route3`, `MtMoon_B2F`, `SilphCo_11F`, `Route24`, `Route25`, `VermilionCity`, `trainers.h`, `trainer_parties.h` | Playable Spearow + Ho-Oh (`SACRED ASH`, `_1`), Marker Jigglypuff (`MUS_JIGGLYPUFF`, `_2`), Jessie/James/Talking Meowth, Stray Charmander (`_3`), Migraine Psyduck (`_4`), Melanie's Bulbasaur (`_5`), Officer Jenny's Squirtle Squad Leader (`_6`), & *Bye Bye Butterfree* (`_7`) |
 
 ---
 
@@ -87,10 +97,11 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 
 | In-Game Role | Cast / Reference | Location / Trigger |
 |---|---|---|
-| Hero | **JOSEPH** (*"Teamwork Makes the Dreamwork!"*) | Playable protagonist across all modes: Oak intro, Trainer Card, all overworld movements, battle back-sprite, and Town Map icon |
+| Hero | **JOSEPH** (*"Teamwork Makes the Dreamwork!"*) | Playable protagonist across all modes: Oak intro, Trainer Card, all 7 overworld movement sheets, battle back-sprite, and Town Map icon |
 | Opening Scene | **Bus-kun Isekai** + **EU `EUR/USD` Forex** | 3-page prologue + Prof. Oak's intro speech |
 | Buffoon Rival | **GREG** | All Rival encounters (blames lag, unplugged mice, & DNS; disqualifies himself before Champion) |
 | Recurring Menace | **STEPHANE** (male, French/African-inflected cadence) | Senior IT Admin running the enterprise merger domain migration; cross-forest trusts, 4:58 PM Friday cutovers, 15-minute replication. Encounters at Rocket Hideout B4F, PTC Windchill HQ (Silph Co. 11F), & Viridian Gym |
+| Anime Rocket Trio | **JESSIE**, **JAMES**, & **TALKING MEOWTH** | Mt. Moon B2F (`(12,20)`, `(18,27)`, `(13,20)`) & Silph Co. 11F (`(16,12)`, `(2,19)`, `(2,18)`) with canonical anime teams & Victreebel gag |
 | Snorlax Neighbor Boss | **ERICA L** | Celadon City Gym Leader (right next to Route 16 DNS Snorlax) |
 | Windchill Area Boss | **CHARLES B** | Saffron City Gym Leader (next door to PTC Windchill / Silph Co. 11F) |
 | Elite Four #1 | **JESSICA** | Indigo Plateau — Room 1 (Lorelei slot) |
@@ -98,10 +109,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 | Elite Four #3 (3rd to last) | **ERIN** | Indigo Plateau — Room 3 (Agatha slot) |
 | Elite Four #4 (2nd to last) | **SONNY** | Indigo Plateau — Room 4 (Lance slot — reveals Greg failed Victory Road & Brian is Champion) |
 | League Champion (Final Boss) | **BRIAN** | Indigo Plateau — Champion's Room (competent powerhouse boss) |
-| Beverages / Healing | **HOT COFFEE** (50 HP), **ICED ESPRESSO** (60 HP), **NINJA CREAMI** (80 HP), **DARK ROAST** (Key Item), **SQUAD SHADES** (Squirtle Squad held item) | Celadon Rooftop Breakroom Vending Machines, Saffron Outage Guards, & wild Squirtle on Route 24 |
+| Beverages / Held Gear | **HOT COFFEE** (50 HP), **ICED ESPRESSO** (60 HP), **NINJA CREAMI** (80 HP), **DARK ROAST** (Key Item), **SQUAD SHADES** (+20% Water power) | Celadon Rooftop Breakroom Vending Machines, Saffron Outage Guards, Vermilion Officer Jenny, & wild Squirtle on Route 24 |
 | Local Hangout | **THE FLYING SAUCER** (Beer House — 200 draught taps & UFO plates on the ceiling) | Oak's Intro, Pallet Town, Celadon City Sign, full Celadon Restaurant (`COIN CASE` hangout), & Champion Brian's victory celebration |
-| IT / Infra Gags | **PTC Windchill**, **DB Maintenance**, **DNS (`ipconfig /flushdns`)**, **Commander Riker Chair Maneuver**, **Sushi & Japan Cherry Blossoms**, **DICK BITERS (Rattata/Raticate)** | Silph Co. 11F, Routes 12 & 16 Snorlax, Celadon EU Forex Desk, Gym Statues, Route 1 tall grass, & Hall of Fame |
-| Anime References | **Squirtle Squad**, **S.S. Anne Magikarp Salesman**, **Misty's Charred Bicycle**, **Bill's Lighthouse Giant Dragonite**, **Damian's Abandoned Charmander** | Route 24, Route 4 Pokémon Center, Cerulean Gym, Route 25 Sea Cottage, & Cerulean Pokémon Center |
+| IT / Infra Gags | **PTC Windchill**, **DB Maintenance**, **DNS (`ipconfig /flushdns`)**, **Commander Riker Chair Maneuver**, **Sushi & Japan Cherry Blossoms**, **DICK BITERS (Rattata/Raticate)** | Silph Co. 11F, Routes 12 & 16 Snorlax, Celadon EU Forex Desk, Gym Statues, Route 1/3 tall grass, & Hall of Fame |
+| Playable Anime Events | **Ep. 1 Spearow & Ho-Oh**, **Ep. 45 Marker Jigglypuff**, **Ep. 11 Stray Charmander**, **Ep. 27 Migraine Psyduck**, **Ep. 10 Melanie's Bulbasaur**, **Ep. 12 Squirtle Squad**, **Ep. 21 Bye Bye Butterfree**, plus Magikarp Salesman, Misty's Bike, & Giant Dragonite | Route 1 `(14,18)`, Route 3 `(66,11)`, Route 24 `(5,15)` & `(15,25)`, Route 25 `(56,7)`, Vermilion City `(23,13)` & `(28,30)`, Route 4 Center, Cerulean Gym, & Sea Cottage |
 
 ---
 

@@ -1,202 +1,369 @@
 #!/usr/bin/env python3
 """
-Converts all vanilla player (Ash/Red) sprite sheets in Pokemon FireRed
-into Joseph (fluffy dark hair, no hat, friendly face with goatee,
-charcoal crewneck T-shirt with Poke Ball emblem, blue jeans, sneakers).
+Converts all vanilla player (Red/Ash) overworld & Town Map sprite sheets in
+Pokemon FireRed into Joseph:
+  - Dynamic per-frame head-top detection (handles walking, sprinting, surfing,
+    biking, and fishing head bobbing cleanly with zero leftover cap brims)
+  - Fluffy dark espresso/black hair (no cap, no headband visor, trimmed profile bill)
+  - Clean forehead, eyes, and subtle goatee stubble
+  - Solid charcoal crewneck T-shirt with chest Poke Ball graphic & blue denim jeans
 """
 
-import sys
 from pathlib import Path
 from PIL import Image
 
-def transform_overworld_pixel(x, y, v, facing, frame_w=16, frame_h=32):
-    # Hair & Hat region (y: 8..20)
-    if y <= 19:
-        # Red / orange / yellow cap colors -> dark fluffy hair
-        if v in (11, 12, 13, 14):
-            # Rich textured dark hair (15=black, 8=dark brown)
-            return 8 if (x + y) % 3 == 0 else 15
-        elif v == 9: # White cap emblem
-            if facing == 'S':
-                return 8 if y <= 18 else 2 # forehead
-            elif facing == 'W':
-                return 8 if y <= 18 else 2
-            else: # N
-                return 8
-        elif v == 6 and y == 19: # old cap visor rim -> hair/forehead
-            return 2 if (facing == 'S' and 4 <= x <= 11) else 8
+# Palette indices in graphics/object_events/palettes/player.pal:
+#  0: transparent
+#  1: #ac7b41 warm brown
+#  2: #ffc594 light skin
+#  3: #de9473 mid skin
+#  4: #7b4141 dark brown (hair midtone / beard stubble)
+#  5: #4141d5 bright denim blue
+#  6: #39397b dark slate-navy (charcoal-blue shadow / jeans shadow)
+#  7: #73a4c5 light denim highlight
+#  8: #6a2929 deep espresso brown (hair body)
+#  9: #eeeeff crisp white
+# 10: #b4b4d5 cool gray
+# 11: #ff6a4a vivid red
+# 12: #c53939 crimson red
+# 13: #ffde5a bright yellow
+# 14: #bd9c39 dark gold
+# 15: #000000 pure black / charcoal
 
-    # Face & Goatee (y: 20..23)
-    if 20 <= y <= 23:
-        if facing == 'S':
-            # Add goatee/beard shadow along jawline
-            if y in (22, 23) and 6 <= x <= 9 and v in (2, 3):
-                return 4 # Dark skin stubble
-        elif facing == 'W':
-            if y in (22, 23) and 8 <= x <= 10 and v in (2, 3):
-                return 4
 
-    # Torso: Red jacket & yellow straps -> Charcoal tee + Poke Ball logo (y: 23..27)
-    if 23 <= y <= 27:
-        if v in (13, 14): # Yellow backpack straps
-            if facing == 'S':
-                return 15 if x in (5, 10) else 6
-            elif facing == 'W':
-                return 6
-            else: # N
-                return 6 if (x + y) % 2 == 0 else 15
-        elif v in (11, 12): # Red jacket fabric
-            return 15 if (x + y) % 2 == 0 else 6 # Charcoal fabric
+def find_head_bounds(frame_px: list[list[int]], fw: int, fh: int, sheet_kind: str) -> tuple[int, int, int]:
+    """
+    Finds (head_top_y, head_left_x, head_right_x) for a single frame by locating
+    the red cap crown (colors 11, 12) in the upper body and stepping 1 row up to
+    the cap's top outline (color 8/15).
+    """
+    # On red_item frames 2..4, a held item/ball can sit above y=12 ONLY in hand columns,
+    # Wait: in red_item, Red holds the item in front of chest OR above head? Let's check:
+    # In audit_sprites.png row 4, Red holds items in front of his chest (y ~ 21..26)!
+    # So the cap crown is ALWAYS the topmost cluster of (11, 12) in y = 4..23!
+    red_rows: list[tuple[int, list[int]]] = []
+    for y in range(2, min(25, fh)):
+        xs = [x for x in range(fw) if frame_px[y][x] in (11, 12)]
+        if len(xs) >= 4:
+            red_rows.append((y, xs))
 
-    # Front-facing chest: Poke Ball graphic (y: 25..26, x: 7..8)
-    if facing == 'S' and y in (25, 26) and x in (7, 8):
-        if y == 25:
-            return 11 # Top half red
-        elif y == 26:
-            return 9  # Bottom half white
+    if not red_rows:
+        # Fallback if a frame has tiny/tilted crown
+        for y in range(2, min(25, fh)):
+            xs = [x for x in range(fw) if frame_px[y][x] in (11, 12)]
+            if len(xs) >= 2:
+                red_rows.append((y, xs))
 
-    return v
+    first_red_y = red_rows[0][0]
+    # Top outline of cap is 1 row above first_red_y
+    top_y = max(0, first_red_y - 1)
+    crown_xs = [x for _, xs in red_rows[:5] for x in xs]
+    left_x = max(0, min(crown_xs) - 1)
+    right_x = min(fw - 1, max(crown_xs) + 1)
+    return top_y, left_x, right_x
 
-def process_overworld_sheet(src_im, frame_w, frame_h, facing_list):
-    out_im = Image.new('P', src_im.size)
-    out_im.putpalette(src_im.getpalette())
-    total_frames = src_im.size[0] // frame_w
-    src_pixels = list(src_im.getdata())
 
-    out_pixels = src_pixels[:]
-    img_w, img_h = src_im.size
+def hair_shade(x: int, dy: int, cx: float) -> int:
+    """Natural layered dark fluffy hair without geometric stripes."""
+    dist = abs(x - cx)
+    if dy <= 0:
+        return 15 if int(round(dist)) % 2 == 0 else 8
+    if dy in (1, 2) and dist <= 2.2:
+        return 4 if (x + dy) % 3 == 0 else 8
+    if dy <= 4 and dist <= 3.5:
+        return 8 if (x * 3 + dy) % 4 != 0 else 15
+    return 15 if dist >= 4.2 else 8
 
-    for f_idx in range(total_frames):
-        facing = facing_list[f_idx % len(facing_list)]
-        offset_x = f_idx * frame_w
-        for y in range(frame_h):
-            for x in range(frame_w):
-                idx = y * img_w + offset_x + x
-                orig_v = src_pixels[idx]
-                if orig_v != 0:
-                    new_v = transform_overworld_pixel(x, y, orig_v, facing, frame_w, frame_h)
-                    out_pixels[idx] = new_v
 
-        # Add top tufts on hair for facing S, N, W (y=11)
-        if frame_h == 32:
-            for x_local in (5, 7, 9, 11):
-                if x_local < frame_w:
-                    idx_12 = 12 * img_w + offset_x + x_local
-                    idx_11 = 11 * img_w + offset_x + x_local
-                    if src_pixels[idx_12] != 0 and src_pixels[idx_11] == 0:
-                        out_pixels[idx_11] = 8
+def process_overworld_frame(
+    frame_px: list[list[int]],
+    fw: int,
+    fh: int,
+    facing: str,
+    sheet_kind: str,
+) -> list[list[int]]:
+    out = [row[:] for row in frame_px]
+    top_y, hx0, hx1 = find_head_bounds(frame_px, fw, fh, sheet_kind)
+    cx = (hx0 + hx1) / 2.0
 
-    out_im.putdata(out_pixels)
-    return out_im
+    # 1. Trim protruding baseball cap bill on West / East profile frames first
+    if facing == "W":
+        for dy in range(3, 8):
+            y = top_y + dy
+            if 0 <= y < fh:
+                # Cap bill sticks out 2px on the far left (hx0 - 2 .. hx0)
+                for x in range(max(0, hx0 - 3), hx0 + 1):
+                    if frame_px[y][x] in (15, 9, 10, 8, 12):
+                        out[y][x] = 0
+                # Restore crisp black front hair outline at hx0 + 1
+                if hx0 + 1 < fw and out[y][hx0 + 1] != 0:
+                    out[y][hx0 + 1] = 15
+    elif facing == "E":
+        for dy in range(3, 8):
+            y = top_y + dy
+            if 0 <= y < fh:
+                for x in range(hx1, min(fw, hx1 + 4)):
+                    if frame_px[y][x] in (15, 9, 10, 8, 12):
+                        out[y][x] = 0
+                if hx1 - 1 >= 0 and out[y][hx1 - 1] != 0:
+                    out[y][hx1 - 1] = 15
 
-def process_back_sprite(src_im):
-    # 5 frames of 64x64
-    out_im = Image.new('P', src_im.size)
-    out_im.putpalette(src_im.getpalette())
-    src_pixels = list(src_im.getdata())
-    out_pixels = src_pixels[:]
-    img_w = 64
+    # 2. Transform head, visor, face, and torso relative to top_y
+    for y in range(fh):
+        dy = y - top_y
+        for x in range(fw):
+            v = out[y][x]
+            if v == 0:
+                continue
 
-    for f_idx in range(5):
-        y_start = f_idx * 64
-        for y_local in range(64):
-            y_global = y_start + y_local
-            for x in range(64):
-                idx = y_global * img_w + x
-                v = src_pixels[idx]
-                if v == 0:
+            # Keep fishing rods & held items outside head/body columns untouched
+            if sheet_kind == "fish":
+                # Rod pixels extend outside [hx0-1 .. hx1+1] or below hands
+                if x < hx0 - 1 or x > hx1 + 1:
                     continue
 
-                # Head area: y_local < 30
-                if y_local < 28:
-                    # Hat fabric (11=bright red, 12=dark red, 13=yellow) -> Dark fluffy hair
-                    if v in (11, 12, 13, 14):
-                        out_pixels[idx] = 8 if (x + y_local) % 3 == 0 else 15
-                    elif v in (9, 10) and y_local < 25: # Hat highlights
-                        out_pixels[idx] = 8 if (x + y_local) % 2 == 0 else 4
+            # A. Upper Hair Crown (dy = 0..6)
+            if 0 <= dy <= 6 and (hx0 - 2 <= x <= hx1 + 2):
+                if v in (8, 9, 10, 11, 12, 13, 14):
+                    out[y][x] = hair_shade(x, dy, cx)
+                elif v == 6:
+                    out[y][x] = 15
 
-                # Torso / Clothes: y_local >= 28
+            # B. Visor & Forehead Zone (dy = 7..8) — eliminates white/blue headband completely!
+            elif dy == 7 and (hx0 - 2 <= x <= hx1 + 2):
+                if facing == "S":
+                    if v in (9, 10, 6, 11, 12):
+                        # Center forehead skin peek with a slight center hair quiff, dark hair at temples
+                        if abs(x - cx) <= 0.6:
+                            out[y][x] = 8  # front quiff tip dipping at center hairline
+                        elif abs(x - cx) <= 2.6:
+                            out[y][x] = 3  # warm upper forehead skin
+                        else:
+                            out[y][x] = 15
+                    elif v == 1:
+                        out[y][x] = 15
+                elif facing == "N":
+                    if v in (9, 10, 6, 11, 12, 1):
+                        out[y][x] = hair_shade(x, dy, cx)
+                elif facing == "W":
+                    if v in (9, 10, 6, 11, 12):
+                        out[y][x] = 3 if x <= cx - 1.5 else hair_shade(x, dy, cx)
+                elif facing == "E":
+                    if v in (9, 10, 6, 11, 12):
+                        out[y][x] = 3 if x >= cx + 1.5 else hair_shade(x, dy, cx)
+
+            elif dy == 8 and (hx0 - 2 <= x <= hx1 + 2):
+                if facing == "S":
+                    # Row directly above eyes: must be clean skin forehead in center, hair/sideburns at edges!
+                    if v in (6, 9, 10, 11, 12):
+                        out[y][x] = 2 if abs(x - cx) <= 2.2 else 3
+                    elif v == 4:
+                        out[y][x] = 15  # crisp sideburn
+                elif facing == "N":
+                    if v in (8, 9, 10, 11, 12, 6, 1, 4):
+                        out[y][x] = 15 if abs(x - cx) >= 3.0 else 8
+                elif facing == "W":
+                    if v in (6, 9, 10, 11, 12):
+                        out[y][x] = 2 if x <= cx - 1.0 else 15
+                    elif v in (8, 4) and x >= cx - 0.5:
+                        out[y][x] = 15 if x >= cx + 2.0 else 8
+                elif facing == "E":
+                    if v in (6, 9, 10, 11, 12):
+                        out[y][x] = 2 if x >= cx + 1.0 else 15
+                    elif v in (8, 4) and x <= cx + 0.5:
+                        out[y][x] = 15 if x <= cx - 2.0 else 8
+
+            # C. Lower Nape / Sideburns / Goatee Zone (dy = 9..11)
+            elif 9 <= dy <= 11 and (hx0 - 2 <= x <= hx1 + 2):
+                if facing == "N":
+                    if v in (1, 4, 8, 11, 12, 6, 9, 10):
+                        out[y][x] = 15 if dy >= 10 or abs(x - cx) >= 2.5 else 8
+                elif facing == "S":
+                    # Sprinting/jumping South frames tilt head forward 1px, putting visor (6/9/10) at dy=9!
+                    if dy in (9, 10) and v in (6, 9, 10):
+                        out[y][x] = 2 if abs(x - cx) <= 2.2 else 3
+                    elif v in (11, 12) and sheet_kind not in ("item", "vs_seeker"):
+                        out[y][x] = 15
+                    # Subtle goatee shadow right at chin center (dy == 10..11)
+                    if dy == 10 and abs(x - cx) <= 0.8 and out[y][x] in (2, 3):
+                        out[y][x] = 4
+                elif facing in ("W", "E"):
+                    if dy == 9 and v in (6, 9, 10):
+                        out[y][x] = 2
+                    elif v == 1:
+                        out[y][x] = 8
+                    if dy == 10 and (
+                        (facing == "W" and x <= cx - 2.0) or (facing == "E" and x >= cx + 2.0)
+                    ) and out[y][x] in (2, 3):
+                        out[y][x] = 4
+
+            # D. Torso: Solid Charcoal T-Shirt (dy = 11..15)
+            if 11 <= dy <= 16 and (hx0 - 1 <= x <= hx1 + 1):
+                if sheet_kind in ("item", "vs_seeker"):
+                    # Preserve held item/Poke Ball/VS Seeker, convert open red vest & straps on torso
+                    if v in (11, 12, 13, 14) and (dy <= 13 or abs(x - cx) >= 1.8 or sheet_kind == "vs_seeker"):
+                        out[y][x] = 15
                 else:
-                    # Red vest -> Charcoal crewneck tee
-                    if v in (11, 12):
-                        out_pixels[idx] = 15 if (x + y_local) % 2 == 0 else 6
-                    # Yellow backpack straps -> Charcoal fabric
-                    elif v in (13, 14):
-                        out_pixels[idx] = 6 if (x + y_local) % 2 == 0 else 15
-                    # Blue backpack -> blend into charcoal tee back
-                    elif v in (5, 7) and y_local < 52 and x < 40:
-                        out_pixels[idx] = 6 if (x + y_local) % 2 == 0 else 15
+                    if v in (11, 12, 13, 14):
+                        # Solid dark charcoal tee (15) with subtle slate shoulder highlight (6) on outer edge
+                        out[y][x] = 6 if abs(x - cx) >= 2.8 and dy <= 13 else 15
+                    elif facing == "S" and dy in (13, 14) and v in (9, 10) and abs(x - cx) <= 1.2:
+                        # Clean existing white/gray zip into charcoal before placing Poke Ball logo
+                        out[y][x] = 15
 
-    out_im.putdata(out_pixels)
+    # 3. Add fluffy forward-and-up hair tufts at top_y - 1 so silhouette isn't a flat dome
+    tuft_y = top_y - 1
+    if tuft_y >= 0:
+        icx = int(round(cx))
+        for tx, col in [(icx - 2, 15), (icx - 1, 8), (icx, 15), (icx + 1, 8), (icx + 2, 15)]:
+            if 0 <= tx < fw and out[top_y][tx] != 0 and out[tuft_y][tx] == 0:
+                out[tuft_y][tx] = col
+
+    # 4. Crisp 2x2 Poke Ball graphic on front of charcoal tee for standard South frames
+    if facing == "S" and sheet_kind in ("normal", "run"):
+        icx = int(round(cx))
+        y_top = top_y + 13
+        y_bot = top_y + 14
+        if y_bot < fh:
+            for bx in (icx, icx + 1) if (hx1 - hx0) % 2 == 1 else (icx - 1, icx):
+                if 0 <= bx < fw and out[y_top][bx] in (15, 6, 10, 11, 12):
+                    out[y_top][bx] = 11  # Red upper half
+                if 0 <= bx < fw and out[y_bot][bx] in (15, 6, 9, 10, 11, 12):
+                    out[y_bot][bx] = 9   # White lower half
+
+    return out
+
+
+def process_overworld_sheet(src_im: Image.Image, fw: int, fh: int, facings: list[str], sheet_kind: str) -> Image.Image:
+    out_im = Image.new("P", src_im.size)
+    out_im.putpalette(src_im.getpalette())
+    img_w, img_h = src_im.size
+    n_frames = img_w // fw
+    assert len(facings) == n_frames, f"Expected {n_frames} facings, got {len(facings)}"
+
+    src_px = src_im.load()
+    dst_px = out_im.load()
+
+    for f_idx in range(n_frames):
+        ox = f_idx * fw
+        grid = [[src_px[ox + x, y] for x in range(fw)] for y in range(fh)]
+        conv = process_overworld_frame(grid, fw, fh, facings[f_idx], sheet_kind)
+        for y in range(fh):
+            for x in range(fw):
+                dst_px[ox + x, y] = conv[y][x]
+
     return out_im
 
-def process_map_icon(src_im):
-    # 16x16 icon
-    out_im = Image.new('P', src_im.size)
-    out_im.putpalette(src_im.getpalette())
-    src_pixels = list(src_im.getdata())
-    out_pixels = src_pixels[:]
+
+def process_map_icon(src_im: Image.Image) -> Image.Image:
+    """16x16 Town Map head icon for Joseph (no cap, fluffy dark hair, clean forehead, goatee)."""
+    out_im = src_im.copy()
+    px = out_im.load()
 
     for y in range(16):
         for x in range(16):
-            idx = y * 16 + x
-            v = src_pixels[idx]
+            v = px[x, y]
             if v == 0:
                 continue
-            # Hat region: rows 2..8
+            # Crown & cap (y <= 7)
             if y <= 7:
-                if v in (11, 12, 13, 14): # Red hat
-                    out_pixels[idx] = 8 if (x + y) % 3 == 0 else 15
-                elif v == 9: # White logo
-                    out_pixels[idx] = 8
-            # Forehead: row 8
+                if v in (11, 12, 9, 10, 8):
+                    px[x, y] = 8 if (2 <= y <= 5 and 5 <= x <= 10 and (x + y) % 2 == 0) else 15
+                elif v == 6:
+                    px[x, y] = 15
+            # Visor rows (y = 8..9) -> clean hairline + warm forehead skin!
             elif y == 8:
-                if v in (6, 9):
-                    out_pixels[idx] = 2 if 5 <= x <= 10 else 8
-            # Beard / Goatee: rows 12..14
-            elif y in (12, 13, 14) and 6 <= x <= 9:
-                if v in (2, 3):
-                    out_pixels[idx] = 4
+                if v in (9, 10, 6, 11, 12):
+                    if x in (7, 8):
+                        px[x, y] = 8
+                    elif 5 <= x <= 10:
+                        px[x, y] = 3
+                    else:
+                        px[x, y] = 15
+                elif v == 1:
+                    px[x, y] = 15
+            elif y == 9:
+                if v in (6, 9, 10, 11, 12):
+                    px[x, y] = 2 if 5 <= x <= 10 else 15
+                elif v == 4:
+                    px[x, y] = 15
+            # Chin / goatee shadow (y = 12..14)
+            elif y in (12, 13) and x in (7, 8) and v in (2, 3):
+                px[x, y] = 4
 
-    out_im.putdata(out_pixels)
+    # Add small fluffy crown tufts at y=1 if y=2 has hair
+    for tx, col in [(6, 15), (7, 8), (8, 15), (9, 8)]:
+        if px[tx, 2] != 0 and px[tx, 1] == 0:
+            px[tx, 1] = col
+
     return out_im
 
-def main():
-    root = Path(__file__).resolve().parent.parent
-    overrides = root / "overrides"
 
-    # Targets to create in overrides
-    targets = [
-        # (src_name, dst_rel, type, frame_w, frame_h, facing)
-        ("red_normal.png", "graphics/object_events/pics/people/red_normal.png", "overworld", 16, 32, ['S', 'N', 'W', 'S', 'S', 'N', 'N', 'W', 'W']),
-        ("red_surf_run.png", "graphics/object_events/pics/people/red_surf_run.png", "overworld", 16, 32, ['S', 'S', 'S', 'N', 'N', 'N', 'W', 'W', 'W', 'S', 'N', 'W', 'W', 'W']),
-        ("red_bike.png", "graphics/object_events/pics/people/red_bike.png", "overworld", 32, 32, ['S', 'N', 'W', 'S', 'S', 'N', 'N', 'W']),
-        ("red_surf.png", "graphics/object_events/pics/people/red_surf.png", "overworld", 32, 32, ['S', 'N', 'W', 'W']),
-        ("red_fish.png", "graphics/object_events/pics/people/red_fish.png", "overworld", 32, 32, ['S', 'N', 'W', 'W']),
-        ("red_item.png", "graphics/object_events/pics/people/red_item.png", "overworld", 16, 32, ['S']),
-        ("red_vs_seeker_bike.png", "graphics/object_events/pics/people/red_vs_seeker_bike.png", "overworld", 32, 32, ['S', 'N', 'W', 'S', 'N', 'W']),
-        ("player_icon_red.png", "graphics/region_map/player_icon_red.png", "icon", 16, 16, []),
+def main() -> None:
+    rom_root = Path(__file__).resolve().parent.parent
+    upstream_gfx = rom_root / "upstream-pokefirered/graphics"
+    overrides = rom_root / "overrides/graphics"
+
+    sheets = [
+        (
+            "object_events/pics/people/red_normal.png",
+            16, 32,
+            ["S", "N", "W", "S", "S", "N", "N", "W", "W"],
+            "normal",
+        ),
+        (
+            "object_events/pics/people/red_surf_run.png",
+            16, 32,
+            ["S", "N", "W", "S", "S", "S", "N", "N", "N", "W", "W", "W", "S", "S"],
+            "run",
+        ),
+        (
+            "object_events/pics/people/red_bike.png",
+            32, 32,
+            ["S", "N", "W", "S", "S", "N", "N", "W", "W"],
+            "bike",
+        ),
+        (
+            "object_events/pics/people/red_surf.png",
+            32, 32,
+            ["S", "S", "N", "N", "W", "W", "S", "N", "E"],
+            "surf",
+        ),
+        (
+            "object_events/pics/people/red_fish.png",
+            32, 32,
+            ["E", "E", "E", "E", "N", "N", "N", "N", "S", "S", "S", "S"],
+            "fish",
+        ),
+        (
+            "object_events/pics/people/red_item.png",
+            16, 32,
+            ["S"] * 9,
+            "item",
+        ),
+        (
+            "object_events/pics/people/red_vs_seeker_bike.png",
+            32, 32,
+            ["S"] * 6,
+            "vs_seeker",
+        ),
     ]
 
-    scratch = root.parent / "scratch"
+    for rel, fw, fh, facings, kind in sheets:
+        src = Image.open(upstream_gfx / rel)
+        conv = process_overworld_sheet(src, fw, fh, facings, kind)
+        dst = overrides / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        conv.save(dst)
+        print(f"[OK] {rel}")
 
-    for src_name, dst_rel, stype, fw, fh, facings in targets:
-        src_path = scratch / src_name
-        if not src_path.exists():
-            print(f"[WARN] {src_path} not found")
-            continue
-        im = Image.open(src_path)
-        if stype == "overworld":
-            res = process_overworld_sheet(im, fw, fh, facings)
-        elif stype == "back":
-            res = process_back_sprite(im)
-        elif stype == "icon":
-            res = process_map_icon(im)
+    icon_rel = "region_map/player_icon_red.png"
+    icon_conv = process_map_icon(Image.open(upstream_gfx / icon_rel))
+    icon_dst = overrides / icon_rel
+    icon_dst.parent.mkdir(parents=True, exist_ok=True)
+    icon_conv.save(icon_dst)
+    print(f"[OK] {icon_rel}")
 
-        dst_path = overrides / dst_rel
-        dst_path.parent.mkdir(parents=True, exist_ok=True)
-        res.save(dst_path)
-        print(f"[OK] Generated {dst_path.relative_to(overrides)}")
 
 if __name__ == "__main__":
     main()

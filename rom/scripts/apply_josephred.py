@@ -154,7 +154,7 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "Quest Log trainer name decouple Champion from Rival",
     )
 
-    # 4. Running Shoes from Step 1 + Indoor Running + Starter Poke Balls & Potions
+    # 4. Running Shoes + Hardware-Masked Auto-Run Chord + Starter Items
     must_replace(
         root / "src/new_game.c",
         '#include "item.h"\n',
@@ -167,18 +167,40 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "    StringCopy(gSaveBlock1Ptr->rivalName, rivalName);",
         "    RunScriptImmediately(EventScript_ResetAllMapFlags);\n"
         "    FlagSet(FLAG_SYS_B_DASH);\n"
-        "    AddBagItem(ITEM_POKE_BALL, 20);\n"
+        "    AddBagItem(ITEM_POKE_BALL, 10);\n"
         "    AddBagItem(ITEM_POTION, 5);\n"
         "    StringCopy(gSaveBlock1Ptr->rivalName, rivalName);",
-        "Enable Running Shoes, 20 Poke Balls and 5 Potions from New Game start",
+        "Enable Running Shoes, 10 backup Poke Balls and 5 Potions from New Game start",
+    )
+    must_replace(
+        root / "src/main.c",
+        "static void ReadKeys(void)\n"
+        "{\n"
+        "    u16 keyInput = REG_KEYINPUT ^ KEYS_MASK;\n"
+        "    gMain.newKeysRaw = keyInput & ~gMain.heldKeysRaw;",
+        "EWRAM_DATA bool8 gAutoRunEnabled = FALSE;\n\n"
+        "static void ReadKeys(void)\n"
+        "{\n"
+        "    u16 keyInput = REG_KEYINPUT ^ KEYS_MASK;\n"
+        "    gAutoRunEnabled = ((keyInput & (L_BUTTON | R_BUTTON)) == (L_BUTTON | R_BUTTON));\n"
+        "    if (gAutoRunEnabled)\n"
+        "        keyInput &= ~(L_BUTTON | R_BUTTON);\n"
+        "    gMain.newKeysRaw = keyInput & ~gMain.heldKeysRaw;",
+        "Hardware-masked L+R auto-run chord in ReadKeys()",
+    )
+    must_replace(
+        root / "src/field_player_avatar.c",
+        '#include "global.h"\n',
+        '#include "global.h"\nextern bool8 gAutoRunEnabled;\n',
+        "Declare extern gAutoRunEnabled in field_player_avatar.c",
     )
     must_replace(
         root / "src/field_player_avatar.c",
         "    if ((heldKeys & B_BUTTON) && FlagGet(FLAG_SYS_B_DASH)\n"
         "        && !IsRunningDisallowed(gObjectEvents[gPlayerAvatar.objectEventId].currentMetatileBehavior))",
-        "    if ((heldKeys & B_BUTTON)\n"
+        "    if ((((heldKeys & B_BUTTON) != 0) != (gAutoRunEnabled != 0))\n"
         "        && !IsRunningDisallowed(gObjectEvents[gPlayerAvatar.objectEventId].currentMetatileBehavior))",
-        "Allow B-button running unconditionally across all saves",
+        "Native Auto-Run + B-sprint across all saves without holding B",
     )
     must_replace(
         root / "src/item_menu.c",
@@ -238,14 +260,7 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "}",
         "Unconditional L/R held button menu navigation",
     )
-    must_replace(
-        root / "src/data/text/species_names.h",
-        "    [SPECIES_RATTATA] = _(\"RATTATA\"),\n"
-        "    [SPECIES_RATICATE] = _(\"RATICATE\"),",
-        "    [SPECIES_RATTATA] = _(\"DICK BITER\"),\n"
-        "    [SPECIES_RATICATE] = _(\"DICK BITER\"),",
-        "Rattata and Raticate renamed to DICK BITER",
-    )
+    # Rattata & Raticate keep their species names, classified as DICK BITER POKeMON!
     must_replace(
         root / "src/data/pokemon/pokedex_entries.h",
         "    [NATIONAL_DEX_RATTATA] =\n"
@@ -273,8 +288,8 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "    \"They grow continuously, so it gnaws on\\n\"\n"
         "    \"hard things to whittle them down.\");",
         "const u8 gRattataPokedexText[] = _(\n"
-        "    \"Known to Joseph and IT as a\\n\"\n"
-        "    \"DICK BITER. Its sharp incisors aim\\n\"\n"
+        "    \"Classified by Joseph and the crew as\\n\"\n"
+        "    \"a DICK BITER. Its sharp incisors aim\\n\"\n"
         "    \"low and clamp down without remorse.\");",
         "Rattata Pokedex description -> Dick Biter lore",
     )
@@ -287,7 +302,7 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "const u8 gRaticatePokedexText[] = _(\n"
         "    \"A full-grown DICK BITER. Its webbed\\n\"\n"
         "    \"feet and vicious jaws make it a menace\\n\"\n"
-        "    \"both on land and across rivers.\");",
+        "    \"both in tall grass and across rivers.\");",
         "Raticate Pokedex description -> Dick Biter lore",
     )
     must_replace(
@@ -528,12 +543,168 @@ def patch_trainers(root: pathlib.Path) -> None:
     ):
         rename_trainer(cid, "BRIAN")
 
+    # Anime Team Rocket Trio: Jessie & James in Mt. Moon B2F and Silph Co. 11F!
+    rename_trainer(
+        "TRAINER_TEAM_ROCKET_GRUNT",
+        "JESSIE",
+        [(".trainerPic = TRAINER_PIC_ROCKET_GRUNT_M,", ".trainerPic = TRAINER_PIC_ROCKET_GRUNT_F,")],
+    )
+    rename_trainer("TRAINER_TEAM_ROCKET_GRUNT_2", "JAMES")
+    rename_trainer("TRAINER_TEAM_ROCKET_GRUNT_40", "JAMES")
+    rename_trainer(
+        "TRAINER_TEAM_ROCKET_GRUNT_41",
+        "JESSIE",
+        [(".trainerPic = TRAINER_PIC_ROCKET_GRUNT_M,", ".trainerPic = TRAINER_PIC_ROCKET_GRUNT_F,")],
+    )
+
     tr_h.write_text(content, encoding="utf-8", newline="\n")
-    print("[OK] Patched bosses & recurring menaces in src/data/trainers.h")
+
+    # Authentic anime rosters for Jessie & James (Ekans/Koffing/Meowth -> Arbok/Weezing/Lickitung/Victreebel/Meowth)
+    tp_h = root / "src/data/trainer_parties.h"
+    must_replace(
+        tp_h,
+        "static const struct TrainerMonNoItemDefaultMoves sParty_TeamRocketGrunt[] = {\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 13,\n"
+        "        .species = SPECIES_RATTATA,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 13,\n"
+        "        .species = SPECIES_ZUBAT,\n"
+        "    },\n"
+        "};\n\n"
+        "static const struct TrainerMonNoItemDefaultMoves sParty_TeamRocketGrunt2[] = {\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 11,\n"
+        "        .species = SPECIES_SANDSHREW,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 11,\n"
+        "        .species = SPECIES_RATTATA,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 11,\n"
+        "        .species = SPECIES_ZUBAT,\n"
+        "    },\n"
+        "};",
+        "static const struct TrainerMonNoItemDefaultMoves sParty_TeamRocketGrunt[] = {\n"
+        "    {\n"
+        "        .iv = 50,\n"
+        "        .lvl = 13,\n"
+        "        .species = SPECIES_EKANS,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 50,\n"
+        "        .lvl = 13,\n"
+        "        .species = SPECIES_MEOWTH,\n"
+        "    },\n"
+        "};\n\n"
+        "static const struct TrainerMonNoItemDefaultMoves sParty_TeamRocketGrunt2[] = {\n"
+        "    {\n"
+        "        .iv = 50,\n"
+        "        .lvl = 13,\n"
+        "        .species = SPECIES_KOFFING,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 50,\n"
+        "        .lvl = 13,\n"
+        "        .species = SPECIES_MEOWTH,\n"
+        "    },\n"
+        "};",
+        "Mt. Moon Jessie & James anime parties",
+    )
+    must_replace(
+        tp_h,
+        "static const struct TrainerMonNoItemDefaultMoves sParty_TeamRocketGrunt40[] = {\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 25,\n"
+        "        .species = SPECIES_RATTATA,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 25,\n"
+        "        .species = SPECIES_RATTATA,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 25,\n"
+        "        .species = SPECIES_ZUBAT,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 25,\n"
+        "        .species = SPECIES_RATTATA,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 25,\n"
+        "        .species = SPECIES_EKANS,\n"
+        "    },\n"
+        "};\n\n"
+        "static const struct TrainerMonNoItemDefaultMoves sParty_TeamRocketGrunt41[] = {\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 32,\n"
+        "        .species = SPECIES_CUBONE,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 32,\n"
+        "        .species = SPECIES_DROWZEE,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 0,\n"
+        "        .lvl = 32,\n"
+        "        .species = SPECIES_MAROWAK,\n"
+        "    },\n"
+        "};",
+        "static const struct TrainerMonNoItemDefaultMoves sParty_TeamRocketGrunt40[] = {\n"
+        "    {\n"
+        "        .iv = 100,\n"
+        "        .lvl = 35,\n"
+        "        .species = SPECIES_WEEZING,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 100,\n"
+        "        .lvl = 34,\n"
+        "        .species = SPECIES_VICTREEBEL,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 100,\n"
+        "        .lvl = 35,\n"
+        "        .species = SPECIES_MEOWTH,\n"
+        "    },\n"
+        "};\n\n"
+        "static const struct TrainerMonNoItemDefaultMoves sParty_TeamRocketGrunt41[] = {\n"
+        "    {\n"
+        "        .iv = 100,\n"
+        "        .lvl = 35,\n"
+        "        .species = SPECIES_ARBOK,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 100,\n"
+        "        .lvl = 34,\n"
+        "        .species = SPECIES_LICKITUNG,\n"
+        "    },\n"
+        "    {\n"
+        "        .iv = 100,\n"
+        "        .lvl = 35,\n"
+        "        .species = SPECIES_MEOWTH,\n"
+        "    },\n"
+        "};",
+        "Silph Co. 11F James & Jessie anime parties",
+    )
+    print("[OK] Patched bosses, recurring menaces, and Jessie & James in trainers.h + trainer_parties.h")
 
 
 def patch_items_and_wild_encounters(root: pathlib.Path) -> None:
-    # 1. Coffee, Iced Espresso, Ninja Creami & Pour-Over Coffee!
+    # 1. Coffee, Iced Espresso, Ninja Creami, Dark Roast & Squirtle Squad Shades!
     items_path = root / "src/data/items.json"
     items_data = json.loads(items_path.read_text(encoding="utf-8"))
     drink_updates = {
@@ -555,7 +726,7 @@ def patch_items_and_wild_encounters(root: pathlib.Path) -> None:
         ),
         "ITEM_BLACK_GLASSES": (
             "SQUAD SHADES",
-            "Pointy shades of the SQUIRTLE SQUAD!\\nRadiates unmatched boss energy and\\nboosts DARK-type move damage.",
+            "Pointy shades of the SQUIRTLE SQUAD!\\nRadiates boss energy and boosts\\nWATER-type moves by 20%.",
         ),
     }
     matched = 0
@@ -566,6 +737,9 @@ def patch_items_and_wild_encounters(root: pathlib.Path) -> None:
             assert len(new_en) <= 13, f"Item name too long: {new_en}"
             item["english"] = new_en
             item["description_english"] = new_desc
+            if iid == "ITEM_BLACK_GLASSES":
+                item["holdEffect"] = "HOLD_EFFECT_WATER_POWER"
+                item["holdEffectParam"] = 20
             matched += 1
     if matched != len(drink_updates):
         raise RuntimeError(f"[FATAL] Expected {len(drink_updates)} items in items.json, matched {matched}")
@@ -815,14 +989,37 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
     )
     must_replace(
         lab_scripts,
-        "\tsetflag FLAG_SYS_POKEMON_GET\n"
-        "\tsetflag FLAG_PALLET_LADY_NOT_BLOCKING_SIGN\n"
-        "\tgivemon PLAYER_STARTER_SPECIES, 5",
-        "\tsetflag FLAG_SYS_POKEMON_GET\n"
-        "\tsetflag FLAG_PALLET_LADY_NOT_BLOCKING_SIGN\n"
-        "\tgivemon PLAYER_STARTER_SPECIES, 5\n"
-        "\tgiveitem ITEM_POKE_BALL, 20",
-        "Oak gives 20 Poke Balls with Starter",
+        "PalletTown_ProfessorOaksLab_EventScript_RivalPicksStarter::\n"
+        "\tclosemessage\n"
+        "\tgoto_if_eq PLAYER_STARTER_NUM, 0, PalletTown_ProfessorOaksLab_EventScript_RivalWalksToCharmander",
+        "PalletTown_ProfessorOaksLab_EventScript_RivalPicksStarter::\n"
+        "\ttextcolor NPC_TEXT_COLOR_MALE\n"
+        "\tmsgbox PalletTown_ProfessorOaksLab_Text_OakGiveStarterPokeBalls\n"
+        "\tgiveitem ITEM_POKE_BALL, 20\n"
+        "\tclosemessage\n"
+        "\tgoto_if_eq PLAYER_STARTER_NUM, 0, PalletTown_ProfessorOaksLab_EventScript_RivalWalksToCharmander",
+        "Oak formally announces and hands 20 Poke Balls after receiving Dratini",
+    )
+    must_replace(
+        lab_scripts,
+        "\tplayfanfare MUS_OBTAIN_KEY_ITEM\n"
+        "\twaitfanfare\n"
+        "\tsetvar VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 3",
+        "\tplayfanfare MUS_OBTAIN_KEY_ITEM\n"
+        "\twaitfanfare\n"
+        "\twaitbuttonpress\n"
+        "\tclosemessage\n"
+        "\tsetvar VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB, 3",
+        "Close RivalTakesStarter message cleanly after button press",
+    )
+    lab_scripts.write_text(
+        lab_scripts.read_text(encoding="utf-8")
+        + "\nPalletTown_ProfessorOaksLab_Text_OakGiveStarterPokeBalls::\n"
+        + '\t.string "OAK: Take these 20 POKé BALLS too,\\n"\n'
+        + '\t.string "{PLAYER}! You\'ll need \'em for those\\l"\n'
+        + '\t.string "wild Dick Biters in the tall grass!$"\n',
+        encoding="utf-8",
+        newline="\n",
     )
 
     # Viridian Mart: allows buying Poke Balls immediately (no parcel softlock!)
@@ -843,15 +1040,17 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         "Viridian Mart sells items before parcel delivery",
     )
 
-    # Route 1: Clerk gives 10 Poke Balls + Potion + introduces Dick Biters
+    # Route 1: Clerk gives Potion FIRST, then 10 Poke Balls cleanly + introduces Dick Biters
     must_replace(
         root / "data/maps/Route1/scripts.inc",
         "\tadditem ITEM_POTION\n"
-        "\tmsgbox Route1_Text_PutPotionAway",
+        "\tmsgbox Route1_Text_PutPotionAway\n"
+        "\tcall EventScript_RestorePrevTextColor",
         "\tadditem ITEM_POTION\n"
+        "\tmsgbox Route1_Text_PutPotionAway\n"
         "\tgiveitem ITEM_POKE_BALL, 10\n"
-        "\tmsgbox Route1_Text_PutPotionAway",
-        "Route 1 clerk gives 10 Poke Balls with sample Potion",
+        "\tcall EventScript_RestorePrevTextColor",
+        "Route 1 clerk gives 10 Poke Balls cleanly after Potion message",
     )
     r1_text = root / "data/maps/Route1/text.inc"
     replace_inc_block(
@@ -861,8 +1060,8 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
             "Hi! I work at the POKéMON MART.\p",
             "Take this sample POTION and 10\n",
             "POKé BALLS on the house!\p",
-            "Watch your ankles in the tall grass—\n",
-            "the wild RATTATA around here are\l",
+            "Watch your shins in the tall grass—\n",
+            "RATTATA and RATICATE out here are\l",
             "vicious! We call 'em DICK BITERS!$",
         ],
     )
@@ -870,14 +1069,24 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         r1_text,
         "Route1_Text_CanJumpFromLedges",
         [
-            "Watch out in that tall grass!\p",
-            "Those DICK BITERS jump right out\n",
-            "and clamp down! Catch one or knock\l",
-            "it out before it gets ya!$",
+            "Watch yourself in that tall grass!\p",
+            "RATTATA and RATICATE—what we call\n",
+            "DICK BITERS—lunge right out and\l",
+            "clamp down! Catch 'em first!$",
         ],
     )
 
     lab_text = root / "data/maps/PalletTown_ProfessorOaksLab/text.inc"
+    replace_inc_block(
+        lab_text,
+        "PalletTown_ProfessorOaksLab_Text_RivalMyMonLooksTougher",
+        [
+            "{RIVAL}: Heh! My POKéMON looks way\n",
+            "tougher than yours!\p",
+            "Go ahead—walk down toward the exit\n",
+            "door! Let's see what you've got!$",
+        ],
+    )
     replace_inc_block(
         lab_text,
         "PalletTown_ProfessorOaksLab_Text_OakChoosingBulbasaur",
@@ -1479,11 +1688,11 @@ def patch_lore_and_boss_gauntlet(root: pathlib.Path) -> None:
     ss_extra = (
         "\nSSAnne_Exterior_EventScript_IsekaiBusKun::\n"
         "\tlockall\n"
-        "\tgoto_if_set FLAG_TEMP_A, SSAnne_Exterior_EventScript_BusKunResting\n"
+        "\tgoto_if_set FLAG_WONDER_CARD_UNUSED_8, SSAnne_Exterior_EventScript_BusKunResting\n"
         "\tmsgbox SSAnne_Exterior_Text_BusKunFound, MSGBOX_DEFAULT\n"
         "\tplaymoncry SPECIES_MEW, CRY_MODE_ENCOUNTER\n"
         "\twaitmoncry\n"
-        "\tsetflag FLAG_TEMP_A\n"
+        "\tsetflag FLAG_WONDER_CARD_UNUSED_8\n"
         "\tsetwildbattle SPECIES_MEW, 30\n"
         "\tdowildbattle\n"
         "\treleaseall\n"
@@ -1731,7 +1940,7 @@ def patch_lore_and_boss_gauntlet(root: pathlib.Path) -> None:
             ],
         )
 
-    # Damian abandons Charmander on the rock (Cerulean Center anime tribute)
+    # Damian abandons Charmander on the rock (Cerulean Center anime lead-in)
     cer_pkmn_txt = root / "data/maps/CeruleanCity_PokemonCenter_1F/text.inc"
     if cer_pkmn_txt.exists():
         replace_inc_block(
@@ -1740,13 +1949,739 @@ def patch_lore_and_boss_gauntlet(root: pathlib.Path) -> None:
             [
                 "DAMIAN: Haha! Hear about that\n",
                 "weak CHARMANDER I ditched?\p",
-                "I told it to wait on that rock!\n",
-                "Gullible lizard is probably still\l",
-                "holding a leaf over its tail!$",
+                "I told it to wait on the rock\n",
+                "west of NUGGET BRIDGE! Gullible\l",
+                "lizard's still guarding its tail!$",
             ],
         )
 
     print("[OK] Patched full Lore, Windchill, DNS Snorlax, Drinks, Boss Gauntlet & Bus-kun")
+
+
+def patch_playable_anime_events(root: pathlib.Path) -> None:
+    """
+    Injects 8 playable 90s Indigo League cartoon events across Kanto using
+    verified walkable ground coordinates (coll=0, elev=3) and persistent
+    unused save flags (FLAG_WONDER_CARD_UNUSED_1 .. _7).
+    """
+
+    def asm_text(symbol: str, lines: list[str]) -> str:
+        lines = [
+            line.replace("\n", "\\n")
+            .replace("\u2014", "-")
+            .replace("#", "No.")
+            .replace("*", "")
+            for line in lines
+        ]
+        lint_gba_lines(symbol, lines)
+        return f"{symbol}::\n" + "".join(f'\t.string "{line}"\n' for line in lines) + "\n"
+
+    def append_map_object(map_name: str, obj: dict) -> None:
+        mp = root / f"data/maps/{map_name}/map.json"
+        data = json.loads(mp.read_text(encoding="utf-8"))
+        data.setdefault("object_events", []).append(obj)
+        mp.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+    def append_scripts(map_name: str, block: str) -> None:
+        sp = root / f"data/maps/{map_name}/scripts.inc"
+        sp.write_text(sp.read_text(encoding="utf-8") + "\n" + block, encoding="utf-8", newline="\n")
+
+    def gift_mon_subscripts(
+        prefix: str,
+        species: str,
+        level: int,
+        item: str,
+        obtained_sym: str,
+        flag: str,
+        remove_local_id: str | None = None,
+    ) -> str:
+        rem = f"\tremoveobject {remove_local_id}\n" if remove_local_id else ""
+        return (
+            f"{prefix}_GiveMon::\n"
+            f"\tcopyvar VAR_PREV_TEXT_COLOR, VAR_TEXT_COLOR\n"
+            f"\tsetvar VAR_TEMP_1, {species}\n"
+            f"\tgivemon {species}, {level}, {item}\n"
+            f"\tgoto_if_eq VAR_RESULT, 0, {prefix}_Party\n"
+            f"\tgoto_if_eq VAR_RESULT, 1, {prefix}_PC\n"
+            f"\tgoto_if_eq VAR_RESULT, 2, EventScript_NoMoreRoomForPokemon\n"
+            f"\trelease\n"
+            f"\tend\n\n"
+            f"{prefix}_Party::\n"
+            f"{rem}"
+            f"\ttextcolor NPC_TEXT_COLOR_NEUTRAL\n"
+            f"\tplayfanfare MUS_LEVEL_UP\n"
+            f"\tmessage {obtained_sym}\n"
+            f"\twaitmessage\n"
+            f"\twaitfanfare\n"
+            f"\tbufferspeciesname STR_VAR_1, {species}\n"
+            f"\tmsgbox Text_GiveNicknameToThisMon, MSGBOX_YESNO\n"
+            f"\tgoto_if_eq VAR_RESULT, NO, {prefix}_Done\n"
+            f"\tcall EventScript_GetGiftMonPartySlot\n"
+            f"\tcall EventScript_ChangePokemonNickname\n"
+            f"\tgoto {prefix}_Done\n"
+            f"\tend\n\n"
+            f"{prefix}_PC::\n"
+            f"{rem}"
+            f"\ttextcolor NPC_TEXT_COLOR_NEUTRAL\n"
+            f"\tplayfanfare MUS_LEVEL_UP\n"
+            f"\tmessage {obtained_sym}\n"
+            f"\twaitmessage\n"
+            f"\twaitfanfare\n"
+            f"\tbufferspeciesname STR_VAR_1, {species}\n"
+            f"\tmsgbox Text_GiveNicknameToThisMon, MSGBOX_YESNO\n"
+            f"\tgoto_if_eq VAR_RESULT, NO, {prefix}_TransferPC\n"
+            f"\tcall EventScript_NameReceivedBoxMon\n"
+            f"\tgoto {prefix}_TransferPC\n"
+            f"\tend\n\n"
+            f"{prefix}_TransferPC::\n"
+            f"\tcall EventScript_TransferredToPC\n"
+            f"\tgoto {prefix}_Done\n"
+            f"\tend\n\n"
+            f"{prefix}_Done::\n"
+            f"\tcopyvar VAR_TEXT_COLOR, VAR_PREV_TEXT_COLOR\n"
+            f"\tsetflag {flag}\n"
+            f"\trelease\n"
+            f"\tend\n\n"
+        )
+
+    # 1. Episode 1 ("Pokemon - I Choose You!"): Route 1 Angry Spearow & Golden Ho-Oh Sighting!
+    append_map_object(
+        "Route1",
+        {
+            "local_id": "LOCALID_ROUTE1_SPEAROW",
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_SPEAROW",
+            "x": 14,
+            "y": 18,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "Route1_EventScript_AnimeSpearow",
+            "flag": "FLAG_WONDER_CARD_UNUSED_1",
+        },
+    )
+    append_scripts(
+        "Route1",
+        "Route1_EventScript_AnimeSpearow::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tplaymoncry SPECIES_SPEAROW, CRY_MODE_ENCOUNTER\n"
+        "\tmsgbox Route1_Text_AnimeSpearowAmbush\n"
+        "\twaitmoncry\n"
+        "\tsetwildbattle SPECIES_SPEAROW, 5, ITEM_ORAN_BERRY\n"
+        "\tdowildbattle\n"
+        "\tremoveobject LOCALID_ROUTE1_SPEAROW\n"
+        "\tsetflag FLAG_WONDER_CARD_UNUSED_1\n"
+        "\tshowmonpic SPECIES_HO_OH, 10, 3\n"
+        "\tplaymoncry SPECIES_HO_OH, CRY_MODE_NORMAL\n"
+        "\twaitmoncry\n"
+        "\tmsgbox Route1_Text_AnimeHoOhRainbow\n"
+        "\thidemonpic\n"
+        "\tgiveitem ITEM_SACRED_ASH, 1\n"
+        "\trelease\n"
+        "\tend\n\n"
+        + asm_text(
+            "Route1_Text_AnimeSpearowAmbush",
+            [
+                "SPEAROW: Speeear-OW!\p",
+                "Just like Day 1 of the cartoon,\n",
+                "an angry SPEAROW is diving right\l",
+                "at {PLAYER}'s head!$",
+            ],
+        )
+        + asm_text(
+            "Route1_Text_AnimeHoOhRainbow",
+            [
+                "Whoa! The storm clouds parted!\p",
+                "A glittering golden bird soared\n",
+                "across a rainbow over ROUTE 1 and\l",
+                "dropped a glowing feather!$",
+            ],
+        ),
+    )
+
+    # 2. Episode 45: Route 3 Singing Marker Jigglypuff + Youngster Ben's Shorts/Dick Biter gag!
+    replace_inc_block(
+        root / "data/maps/Route3/text.inc",
+        "Route3_Text_BenIntro",
+        [
+            "Hi! I like shorts! They're comfy\n",
+            "and easy to wear!\p",
+            "…Well, until a wild DICK BITER\n",
+            "lunges out of the tall grass!$",
+        ],
+    )
+    append_map_object(
+        "Route3",
+        {
+            "local_id": "LOCALID_ROUTE3_JIGGLYPUFF",
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_JIGGLYPUFF",
+            "x": 66,
+            "y": 11,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "Route3_EventScript_AnimeJigglypuff",
+            "flag": "FLAG_WONDER_CARD_UNUSED_2",
+        },
+    )
+    append_scripts(
+        "Route3",
+        "Route3_EventScript_AnimeJigglypuff::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tmsgbox Route3_Text_JigglypuffMicReady\n"
+        "\tclosemessage\n"
+        "\tfadeoutbgm 0\n"
+        "\tplaybgm MUS_JIGGLYPUFF, 0\n"
+        "\tdelay 320\n"
+        "\tfadescreen FADE_TO_BLACK\n"
+        "\tdelay 45\n"
+        "\tfadedefaultbgm\n"
+        "\tmsgbox Route3_Text_JigglypuffMarkerSound\n"
+        "\tclosemessage\n"
+        "\tfadescreen FADE_FROM_BLACK\n"
+        "\tplaymoncry SPECIES_JIGGLYPUFF, CRY_MODE_ENCOUNTER\n"
+        "\twaitmoncry\n"
+        "\tmsgbox Route3_Text_JigglypuffFurious\n"
+        "\tsetwildbattle SPECIES_JIGGLYPUFF, 9, ITEM_PERSIM_BERRY\n"
+        "\tdowildbattle\n"
+        "\tremoveobject LOCALID_ROUTE3_JIGGLYPUFF\n"
+        "\tsetflag FLAG_WONDER_CARD_UNUSED_2\n"
+        "\trelease\n"
+        "\tend\n\n"
+        + asm_text(
+            "Route3_Text_JigglypuffMicReady",
+            [
+                "A wild JIGGLYPUFF stepped up\n",
+                "holding a marker like a mic!\p",
+                "Ahem… JIGGLYPUFF took a deep\n",
+                "breath to sing!$",
+            ],
+        )
+        + asm_text(
+            "Route3_Text_JigglypuffMarkerSound",
+            [
+                "Zzz… {PLAYER} passed out cold\n",
+                "mid-lullaby!\p",
+                "*SQUEAK! SQUEAK! SQUEAK!*\n",
+                "Wait—is that permanent marker?!$",
+            ],
+        )
+        + asm_text(
+            "Route3_Text_JigglypuffFurious",
+            [
+                "JIGGLYPUFF puffed up furious and\n",
+                "drew whiskers all over {PLAYER}'s\l",
+                "face! Here it comes!$",
+            ],
+        ),
+    )
+
+    # 3. Episodes 2 & 6: Jessie, James & Talking Meowth in Mt. Moon B2F & Silph Co. 11F!
+    mt_map_path = root / "data/maps/MtMoon_B2F/map.json"
+    mt_map = json.loads(mt_map_path.read_text(encoding="utf-8"))
+    for obj in mt_map["object_events"]:
+        if obj.get("script") == "MtMoon_B2F_EventScript_Grunt1":
+            obj["graphics_id"] = "OBJ_EVENT_GFX_ROCKET_F"
+    mt_map["object_events"].append(
+        {
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_MEOWTH",
+            "x": 13,
+            "y": 20,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "MtMoon_B2F_EventScript_TalkingMeowth",
+            "flag": "FLAG_HIDE_MISC_KANTO_ROCKETS",
+        }
+    )
+    mt_map_path.write_text(json.dumps(mt_map, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+    mt_txt = root / "data/maps/MtMoon_B2F/text.inc"
+    replace_inc_block(
+        mt_txt,
+        "MtMoon_B2F_Text_Grunt2Intro",
+        [
+            "JAMES: Prepare for trouble down\n",
+            "in MT. MOON!\p",
+            "Hand over those rare fossils\n",
+            "before KOFFING smokes you out!$",
+        ],
+    )
+    replace_inc_block(
+        mt_txt,
+        "MtMoon_B2F_Text_Grunt2Defeat",
+        ["Looks like I'm blasting off!$"],
+    )
+    replace_inc_block(
+        mt_txt,
+        "MtMoon_B2F_Text_Grunt2PostBattle",
+        [
+            "JAMES: Wait up for me, JESSIE!\n",
+            "Don't leave me in this cave!$",
+        ],
+    )
+    replace_inc_block(
+        mt_txt,
+        "MtMoon_B2F_Text_Grunt1Intro",
+        [
+            "JESSIE: And make it double!\p",
+            "To denounce the evils of truth\n",
+            "and 'Teamwork Makes the\l",
+            "Dreamwork'! Attack, EKANS!$",
+        ],
+    )
+    replace_inc_block(
+        mt_txt,
+        "MtMoon_B2F_Text_Grunt1Defeat",
+        ["WE'RE BLASTING OFF AGAAAAIN!!$"],
+    )
+    replace_inc_block(
+        mt_txt,
+        "MtMoon_B2F_Text_Grunt1PostBattle",
+        [
+            "JESSIE: Ugh! That twerp's dragon\n",
+            "totally ruined my hair!$",
+        ],
+    )
+    append_scripts(
+        "MtMoon_B2F",
+        "MtMoon_B2F_EventScript_TalkingMeowth::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tplaymoncry SPECIES_MEOWTH, CRY_MODE_NORMAL\n"
+        "\tmsgbox MtMoon_B2F_Text_TalkingMeowth\n"
+        "\twaitmoncry\n"
+        "\trelease\n"
+        "\tend\n\n"
+        + asm_text(
+            "MtMoon_B2F_Text_TalkingMeowth",
+            [
+                "MEOWTH: Meowth, that's right!\p",
+                "Don't look shocked I talk human,\n",
+                "pal—somebody's gotta supervise\l",
+                "JESSIE and JAMES!$",
+            ],
+        ),
+    )
+
+    # Silph Co. 11F rematch with Jessie, James (chomped by Victreebel!) & Talking Meowth
+    s11_map_path = root / "data/maps/SilphCo_11F/map.json"
+    s11_map = json.loads(s11_map_path.read_text(encoding="utf-8"))
+    for obj in s11_map["object_events"]:
+        if obj.get("script") == "SilphCo_11F_EventScript_Grunt2":
+            obj["graphics_id"] = "OBJ_EVENT_GFX_ROCKET_F"
+    s11_map["object_events"].append(
+        {
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_MEOWTH",
+            "x": 2,
+            "y": 18,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_FACE_UP",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "SilphCo_11F_EventScript_TalkingMeowth",
+            "flag": "FLAG_HIDE_SILPH_ROCKETS",
+        }
+    )
+    s11_map_path.write_text(json.dumps(s11_map, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+    s11_txt = root / "data/maps/SilphCo_11F/text.inc"
+    replace_inc_block(
+        s11_txt,
+        "SilphCo_11F_Text_Grunt1Intro",
+        [
+            "JAMES: Prepare for merger trouble!\n",
+            "Go, VICTREEBEL—OW! MY HEAD!\l",
+            "STOP EATING ME AND BITE HIM!$",
+        ],
+    )
+    replace_inc_block(
+        s11_txt,
+        "SilphCo_11F_Text_Grunt1Defeat",
+        ["Blasting off from the 11th floor!$"],
+    )
+    replace_inc_block(
+        s11_txt,
+        "SilphCo_11F_Text_Grunt1PostBattle",
+        [
+            "JAMES: Ow… VICTREEBEL still won't\n",
+            "let go of my skull…$",
+        ],
+    )
+    replace_inc_block(
+        s11_txt,
+        "SilphCo_11F_Text_Grunt2Intro",
+        [
+            "JESSIE: Make it double! STEPHANE\n",
+            "hired us as Cutover Security!\p",
+            "Nobody stops his Friday 4:58 PM\n",
+            "deploy on our watch!$",
+        ],
+    )
+    replace_inc_block(
+        s11_txt,
+        "SilphCo_11F_Text_Grunt2Defeat",
+        ["TEAM ROCKET'S BLASTING OFF AGAIN!$"],
+    )
+    replace_inc_block(
+        s11_txt,
+        "SilphCo_11F_Text_Grunt2PostBattle",
+        [
+            "JESSIE: Even STEPHANE's broken\n",
+            "domain trusts last longer than us!$",
+        ],
+    )
+    append_scripts(
+        "SilphCo_11F",
+        "SilphCo_11F_EventScript_TalkingMeowth::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tplaymoncry SPECIES_MEOWTH, CRY_MODE_NORMAL\n"
+        "\tmsgbox SilphCo_11F_Text_TalkingMeowth\n"
+        "\twaitmoncry\n"
+        "\trelease\n"
+        "\tend\n\n"
+        + asm_text(
+            "SilphCo_11F_Text_TalkingMeowth",
+            [
+                "MEOWTH: That's right! STEPHANE\n",
+                "made me open three tickets just\l",
+                "to get a saucer of milk up here!\p",
+                "Honestly, {PLAYER}, go beat him!$",
+            ],
+        ),
+    )
+
+    # 4 & 5. Route 24: Damian's Stray Charmander on the Rock (Ep. 11) + Misty's Psyduck (Ep. 27)!
+    append_map_object(
+        "Route24",
+        {
+            "local_id": "LOCALID_ROUTE24_STRAY_ROCK",
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_ROCK_SMASH_ROCK",
+            "x": 5,
+            "y": 15,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "Route24_EventScript_StrayCharmander",
+            "flag": "FLAG_WONDER_CARD_UNUSED_3",
+        },
+    )
+    append_map_object(
+        "Route24",
+        {
+            "local_id": "LOCALID_ROUTE24_PSYDUCK",
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_PSYDUCK",
+            "x": 15,
+            "y": 25,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_LOOK_AROUND",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "Route24_EventScript_MigrainePsyduck",
+            "flag": "FLAG_WONDER_CARD_UNUSED_4",
+        },
+    )
+    append_scripts(
+        "Route24",
+        "Route24_EventScript_StrayCharmander::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tshowmonpic SPECIES_CHARMANDER, 10, 3\n"
+        "\tplaymoncry SPECIES_CHARMANDER, CRY_MODE_NORMAL\n"
+        "\twaitmoncry\n"
+        "\tmsgbox Route24_Text_StrayCharmanderFound\n"
+        "\thidemonpic\n"
+        "\tgoto Route24_StrayCharmander_GiveMon\n"
+        "\tend\n\n"
+        + gift_mon_subscripts(
+            "Route24_StrayCharmander",
+            "SPECIES_CHARMANDER",
+            12,
+            "ITEM_CHARCOAL",
+            "Route24_Text_RescuedCharmander",
+            "FLAG_WONDER_CARD_UNUSED_3",
+            "LOCALID_ROUTE24_STRAY_ROCK",
+        )
+        + "Route24_EventScript_MigrainePsyduck::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tmsgbox Route24_Text_PsyduckHeadache\n"
+        "\tclosemessage\n"
+        "\tplaymoncry SPECIES_PSYDUCK, CRY_MODE_ENCOUNTER\n"
+        "\tfadescreen FADE_TO_WHITE\n"
+        "\twaitmoncry\n"
+        "\tfadescreen FADE_FROM_WHITE\n"
+        "\tmsgbox Route24_Text_PsyduckBurst\n"
+        "\tsetwildbattle SPECIES_PSYDUCK, 14, ITEM_TWISTED_SPOON\n"
+        "\tdowildbattle\n"
+        "\tremoveobject LOCALID_ROUTE24_PSYDUCK\n"
+        "\tsetflag FLAG_WONDER_CARD_UNUSED_4\n"
+        "\trelease\n"
+        "\tend\n\n"
+        + asm_text(
+            "Route24_Text_StrayCharmanderFound",
+            [
+                "Shivering on this rock under a\n",
+                "leaf is DAMIAN's abandoned\l",
+                "CHARMANDER!\p",
+                "{PLAYER} shielded its tail flame!\n",
+                "CHARMANDER wants to join you!$",
+            ],
+        )
+        + asm_text(
+            "Route24_Text_RescuedCharmander",
+            ["{PLAYER} rescued the stray\n", "CHARMANDER!$"],
+        )
+        + asm_text(
+            "Route24_Text_PsyduckHeadache",
+            [
+                "PSYDUCK is clutching its head by\n",
+                "the riverbank…\p",
+                "PSYDUCK: Psy… ai-ai-ai…!$",
+            ],
+        )
+        + asm_text(
+            "Route24_Text_PsyduckBurst",
+            [
+                "WHOA! PSYDUCK's migraine unleashed\n",
+                "a massive psychic wave!$",
+            ],
+        ),
+    )
+
+    # 6. Episode 10: Melanie's Hidden Village Bulbasaur on Route 25!
+    append_map_object(
+        "Route25",
+        {
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_LASS",
+            "x": 56,
+            "y": 7,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "Route25_EventScript_MelanieBulbasaur",
+            "flag": "0",
+        },
+    )
+    append_scripts(
+        "Route25",
+        "Route25_EventScript_MelanieBulbasaur::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tgoto_if_set FLAG_WONDER_CARD_UNUSED_5, Route25_EventScript_MelanieAfter\n"
+        "\tmsgbox Route25_Text_MelanieIntro\n"
+        "\tshowmonpic SPECIES_BULBASAUR, 10, 3\n"
+        "\tplaymoncry SPECIES_BULBASAUR, CRY_MODE_NORMAL\n"
+        "\twaitmoncry\n"
+        "\tmsgbox Route25_Text_MelanieTrustsPlayer\n"
+        "\thidemonpic\n"
+        "\tgoto Route25_MelanieBulbasaur_GiveMon\n"
+        "\tend\n\n"
+        "Route25_EventScript_MelanieAfter::\n"
+        "\tmsgbox Route25_Text_MelanieAfter\n"
+        "\trelease\n"
+        "\tend\n\n"
+        + gift_mon_subscripts(
+            "Route25_MelanieBulbasaur",
+            "SPECIES_BULBASAUR",
+            14,
+            "ITEM_MIRACLE_SEED",
+            "Route25_Text_ObtainedHiddenBulbasaur",
+            "FLAG_WONDER_CARD_UNUSED_5",
+        )
+        + asm_text(
+            "Route25_Text_MelanieIntro",
+            [
+                "MELANIE: Welcome to my hidden\n",
+                "sanctuary for injured POKéMON!\p",
+                "This brave BULBASAUR protects\n",
+                "every hurt Pidgey and Dick Biter\l",
+                "until they heal up.$",
+            ],
+        )
+        + asm_text(
+            "Route25_Text_MelanieTrustsPlayer",
+            [
+                "MELANIE: Oh! BULBASAUR sees how\n",
+                "much your team trusts you!\p",
+                "It wants to grow stronger with\n",
+                "you, {PLAYER}! Take care of it!$",
+            ],
+        )
+        + asm_text(
+            "Route25_Text_ObtainedHiddenBulbasaur",
+            ["{PLAYER} recruited MELANIE's\n", "BULBASAUR!$"],
+        )
+        + asm_text(
+            "Route25_Text_MelanieAfter",
+            [
+                "MELANIE: Take great care of\n",
+                "BULBASAUR! Teamwork Makes the\l",
+                "Dreamwork!$",
+            ],
+        ),
+    )
+
+    # 7 & 8. Vermilion City: Officer Jenny + Squirtle Squad Leader (Ep. 12) & Bye Bye Butterfree (Ep. 21)!
+    append_map_object(
+        "VermilionCity",
+        {
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_POLICEMAN",
+            "x": 23,
+            "y": 13,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "VermilionCity_EventScript_OfficerJennySquirtle",
+            "flag": "0",
+        },
+    )
+    append_map_object(
+        "VermilionCity",
+        {
+            "type": "object",
+            "graphics_id": "OBJ_EVENT_GFX_BUG_CATCHER",
+            "x": 28,
+            "y": 30,
+            "elevation": 3,
+            "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
+            "movement_range_x": 0,
+            "movement_range_y": 0,
+            "trainer_type": "TRAINER_TYPE_NONE",
+            "trainer_sight_or_berry_tree_id": "0",
+            "script": "VermilionCity_EventScript_ByeByeButterfree",
+            "flag": "0",
+        },
+    )
+    append_scripts(
+        "VermilionCity",
+        "VermilionCity_EventScript_OfficerJennySquirtle::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tgoto_if_set FLAG_WONDER_CARD_UNUSED_6, VermilionCity_EventScript_JennyAfter\n"
+        "\tmsgbox VermilionCity_Text_JennySquirtleSquad\n"
+        "\tshowmonpic SPECIES_SQUIRTLE, 10, 3\n"
+        "\tplaymoncry SPECIES_SQUIRTLE, CRY_MODE_NORMAL\n"
+        "\twaitmoncry\n"
+        "\tmsgbox VermilionCity_Text_JennyRecruitBoss\n"
+        "\thidemonpic\n"
+        "\tgoto VermilionCity_SquirtleBoss_GiveMon\n"
+        "\tend\n\n"
+        "VermilionCity_EventScript_JennyAfter::\n"
+        "\tmsgbox VermilionCity_Text_JennyAfter\n"
+        "\trelease\n"
+        "\tend\n\n"
+        + gift_mon_subscripts(
+            "VermilionCity_SquirtleBoss",
+            "SPECIES_SQUIRTLE",
+            16,
+            "ITEM_BLACK_GLASSES",
+            "VermilionCity_Text_ObtainedSquirtleBoss",
+            "FLAG_WONDER_CARD_UNUSED_6",
+        )
+        + "VermilionCity_EventScript_ByeByeButterfree::\n"
+        "\tlock\n"
+        "\tfaceplayer\n"
+        "\tgoto_if_set FLAG_WONDER_CARD_UNUSED_7, VermilionCity_EventScript_ButterfreeAfter\n"
+        "\tplaymoncry SPECIES_BUTTERFREE, CRY_MODE_NORMAL\n"
+        "\tmsgbox VermilionCity_Text_ByeByeButterfree\n"
+        "\twaitmoncry\n"
+        "\tgiveitem ITEM_SILVER_POWDER, 1\n"
+        "\tgiveitem ITEM_RARE_CANDY, 1\n"
+        "\tsetflag FLAG_WONDER_CARD_UNUSED_7\n"
+        "\trelease\n"
+        "\tend\n\n"
+        "VermilionCity_EventScript_ButterfreeAfter::\n"
+        "\tmsgbox VermilionCity_Text_ButterfreeAfter\n"
+        "\trelease\n"
+        "\tend\n\n"
+        + asm_text(
+            "VermilionCity_Text_JennySquirtleSquad",
+            [
+                "JENNY: Salute, {PLAYER}! A rogue\n",
+                "gang called the SQUIRTLE SQUAD\l",
+                "was pulling pranks all week…\p",
+                "Until they heroically put out a\n",
+                "harbor fire today!$",
+            ],
+        )
+        + asm_text(
+            "VermilionCity_Text_JennyRecruitBoss",
+            [
+                "JENNY: Their boss won't take off\n",
+                "its pointy shades—and wants to\l",
+                "roll with a real leader like you!$",
+            ],
+        )
+        + asm_text(
+            "VermilionCity_Text_ObtainedSquirtleBoss",
+            [
+                "{PLAYER} recruited the SQUIRTLE\n",
+                "SQUAD LEADER (w/ SQUAD SHADES)!$",
+            ],
+        )
+        + asm_text(
+            "VermilionCity_Text_JennyAfter",
+            [
+                "JENNY: Those SQUAD SHADES boost\n",
+                "WATER moves by 20%! Rock 'em\l",
+                "proud, {PLAYER}!$",
+            ],
+        )
+        + asm_text(
+            "VermilionCity_Text_ByeByeButterfree",
+            [
+                "*Sniff*… Look out over the ocean,\n",
+                "{PLAYER}…\p",
+                "My BUTTERFREE just fell in love\n",
+                "with a PINK BUTTERFREE and flew\l",
+                "off across the sea together!\p",
+                "I tied my yellow scarf on it and\n",
+                "wished 'em well. Take these!$",
+            ],
+        )
+        + asm_text(
+            "VermilionCity_Text_ButterfreeAfter",
+            [
+                "Fly high out there, BUTTERFREE!\n",
+                "I'm not crying—it's sea spray!$",
+            ],
+        ),
+    )
+
+    print("[OK] Injected 8 playable 90s Indigo League anime events across Kanto")
 
 
 def copy_overrides(overrides_dir: pathlib.Path, root: pathlib.Path) -> None:
@@ -1775,6 +2710,7 @@ def main() -> None:
     patch_items_and_wild_encounters(root)
     patch_intro_and_oaks_lab(root)
     patch_lore_and_boss_gauntlet(root)
+    patch_playable_anime_events(root)
     if overrides:
         copy_overrides(overrides, root)
     print("[OK] All Pokémon JosephRed source patches applied cleanly.")

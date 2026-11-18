@@ -85,6 +85,31 @@
   - *Squirtle Squad Ambush (Ep. 12)*: Camper Shane on Route 24 describes the sunglasses-wearing gang and their signature Squad Shades.
   - *Damian & Abandoned Charmander (Ep. 11)*: Damian brags at the Cerulean Pokémon Center counter about leaving his Charmander on a rock waiting in the rain.
 
+### Fixed & Expanded (2026-11-17 Audit & Playable Anime Update)
+- **Oak's Lab Starter & Rival Cutscene Fix (`PalletTown_ProfessorOaksLab/scripts.inc`, `text.inc`, `Route1/scripts.inc`):**
+  - Fixed `PalletTown_ProfessorOaksLab_EventScript_RivalTakesStarter` leaving `"GREG received the ... from PROF. OAK!"` frozen on screen by adding `waitbuttonpress` and `closemessage` before setting `VAR_MAP_SCENE_PALLET_TOWN_PROFESSOR_OAKS_LAB = 3`.
+  - Updated `PalletTown_ProfessorOaksLab_Text_RivalMyMonLooksTougher` so talking to Greg at the table directs the player to walk down toward the exit door (`y = 8`) to start the rival battle instead of feeling stuck.
+  - Moved Oak's 20 Poké Ball gift *after* receiving Dratini with dedicated dialogue (`PalletTown_ProfessorOaksLab_Text_OakGiveStarterPokeBalls`), kept 10 backup Poké Balls + 5 Potions at New Game start, and fixed the Route 1 Mart Clerk's Potion + 10 Poké Balls message order.
+- **Hardware-Masked `L+R` Auto-Run Engine (`src/main.c`, `src/field_player_avatar.c`, `web/src/App.tsx`):**
+  - Replaced the broken `emu.buttonPress('B')` auto-run implementation (which broke `B` in menus and auto-cancelled evolutions in `evolution_scene.c`) with a stateless hardware-masked `L+R` chord (`gAutoRunEnabled`) stripped from `keyInput` inside `ReadKeys()`.
+  - When `RUN` is toggled ON, Joseph sprints automatically without holding `B` (holding `B` walks cleanly for tight indoor corners), `B` works 100% normally in menus/evolutions, and `syncAutoRunChord` temporarily unpresses the opposite shoulder button during manual `L`/`R` pocket taps.
+- **Rattata & Raticate "Dick Biters" Classification Fix (`pokedex_entries.h`, `pokedex_text_fr.h`, `Route1/text.inc`, `Route3/text.inc`):**
+  - Restored `RATTATA` and `RATICATE` as their canonical species names while keeping their Pokédex classification set to **`DICK BITER`** (`DICK BITER POKéMON`) and referring to them as *"Dick Biters"* across Pokédex entries and Kanto NPC/trainer dialogue.
+- **Sprite Quality Overhaul — Squirtle Squad Shades, Overworld Joseph & Battle Back (`rom/scripts/render_squirtle_shades.py`, `convert_all_player_sprites.py`, `convert_battle_back.py`, `rom/assets/joseph_battle_back_source.jpg`):**
+  - Replaced murky green oversized polygon sunglasses on Squirtle with crisp jet-black (`#101010`) pointed Squirtle Squad leader shades + white/silver reflection glint on **both** `front.png` and `back.png`, and upgraded `SQUAD SHADES` (`ITEM_BLACK_GLASSES`) to `HOLD_EFFECT_WATER_POWER` (+20% Water-type move damage).
+  - Rewrote `convert_all_player_sprites.py` with dynamic per-frame head-top detection (`find_head_bounds`) and exact per-sheet facing arrays across all 7 overworld sprite sheets (`red_normal.png`, `red_surf_run.png`, `red_bike.png`, `red_surf.png`, `red_fish.png`, `red_item.png`, `red_vs_seeker_bike.png`) + `player_icon_red.png`, eliminating all leftover cap visors and red hat tops.
+  - Fixed `convert_battle_back.py` so `cleaned = Image.fromarray(crop_arr)` preserves artifact cleanup and removes the duplicate Poké Ball in Frame 0's left hand, backed by repo-tracked `rom/assets/joseph_battle_back_source.jpg`.
+- **8 Playable 90s Indigo League Anime Events (`rom/scripts/apply_josephred.py`):**
+  - **Ep. 1 (`Route1` at `14,18`):** Angry Spearow ambush (`OBJ_EVENT_GFX_SPEAROW`) followed by golden **Ho-Oh** rainbow sky sighting + `ITEM_SACRED_ASH` drop (`FLAG_WONDER_CARD_UNUSED_1`).
+  - **Ep. 45 (`Route3` at `66,11`):** Singing Marker **Jigglypuff** (`MUS_JIGGLYPUFF` lullaby, sleep blackout, permanent marker scribble, Lv. 9 wild battle, `FLAG_WONDER_CARD_UNUSED_2`) + Youngster Ben's shorts/Dick Biter gag.
+  - **Ep. 2 & 6 (`MtMoon_B2F` & `SilphCo_11F`):** **Jessie**, **James**, and **Talking Meowth** (`OBJ_EVENT_GFX_MEOWTH`) with female Rocket sprite/pic, full motto, James's head-chomping Victreebel gag, and canonical anime teams (Ekans/Koffing/Meowth → Arbok/Lickitung/Weezing/Victreebel/Meowth).
+  - **Ep. 11 (`Route24` at `5,15`):** Rescuable **Lv. 12 Stray Charmander** holding `ITEM_CHARCOAL` on the rock west of Nugget Bridge (`FLAG_WONDER_CARD_UNUSED_3`).
+  - **Ep. 27 (`Route24` at `15,25`):** **Misty's Migraine Psyduck** psychic flash + Lv. 14 wild battle holding `ITEM_TWISTED_SPOON` (`FLAG_WONDER_CARD_UNUSED_4`).
+  - **Ep. 10 (`Route25` at `56,7`):** **Melanie's Hidden Village Bulbasaur** sanctuary gift — **Lv. 14 Bulbasaur** holding `ITEM_MIRACLE_SEED` (`FLAG_WONDER_CARD_UNUSED_5`).
+  - **Ep. 12 (`VermilionCity` at `23,13`):** **Officer Jenny** recruiting Joseph to lead the **Lv. 16 Squirtle Squad Leader** holding `ITEM_BLACK_GLASSES` (`SQUAD SHADES`) (`FLAG_WONDER_CARD_UNUSED_6`).
+  - **Ep. 21 (`VermilionCity` pier at `28,30`):** ***"Bye Bye Butterfree"*** overlook gifting `ITEM_SILVER_POWDER` + `ITEM_RARE_CANDY` (`FLAG_WONDER_CARD_UNUSED_7`), plus persistent `FLAG_WONDER_CARD_UNUSED_8` on Vermilion Harbor Bus-kun Mew.
+
+
 
 
 

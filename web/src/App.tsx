@@ -116,6 +116,21 @@ export function App() {
     }
   }, []);
 
+  const syncAutoRunChord = useCallback((emu: EmulatorInstance | null) => {
+    if (!emu) return;
+    const hasL = pressedSetRef.current.has('L');
+    const hasR = pressedSetRef.current.has('R');
+    if (runLockRef.current && !hasL && !hasR) {
+      emu.buttonPress('L');
+      emu.buttonPress('R');
+    } else {
+      if (hasL) emu.buttonPress('L');
+      else emu.buttonUnpress('L');
+      if (hasR) emu.buttonPress('R');
+      else emu.buttonUnpress('R');
+    }
+  }, []);
+
   const pressButton = useCallback(
     (btn: GBAButton, haptic = false) => {
       unlockAudioIfNeeded();
@@ -123,26 +138,33 @@ export function App() {
       if (!emu) return;
       if (!pressedSetRef.current.has(btn)) {
         pressedSetRef.current.add(btn);
-        emu.buttonPress(btn);
+        if (btn === 'L' || btn === 'R') {
+          syncAutoRunChord(emu);
+        } else {
+          emu.buttonPress(btn);
+        }
         setPressedUI((prev) => ({ ...prev, [btn]: true }));
         if (haptic) triggerHaptic(10);
       }
     },
-    [unlockAudioIfNeeded],
+    [unlockAudioIfNeeded, syncAutoRunChord],
   );
 
   const releaseButton = useCallback(
     (btn: GBAButton) => {
       const emu = emuRef.current;
       if (!emu) return;
-      if (btn === 'B' && runLockRef.current) return;
       if (pressedSetRef.current.has(btn)) {
         pressedSetRef.current.delete(btn);
-        emu.buttonUnpress(btn);
+        if (btn === 'L' || btn === 'R') {
+          syncAutoRunChord(emu);
+        } else {
+          emu.buttonUnpress(btn);
+        }
         setPressedUI((prev) => ({ ...prev, [btn]: false }));
       }
     },
-    [],
+    [syncAutoRunChord],
   );
 
   // Initialize mGBA WASM + load josephred.gba
@@ -202,6 +224,7 @@ export function App() {
 
         emu.setVolume(1.0);
         emuRef.current = emu;
+        syncAutoRunChord(emu);
 
         // Expose minimal debug hook on window for automated Playwright verification
         (window as unknown as Record<string, unknown>).__JOSEPHRED_EMU__ = {
@@ -226,6 +249,8 @@ export function App() {
     return () => {
       cancelled = true;
     };
+    // Boot emulator strictly once on mount; callbacks read refs directly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist SRAM whenever tab hides or closes
@@ -279,11 +304,19 @@ export function App() {
       }
     };
 
+    const onWindowBlur = () => {
+      for (const btn of Array.from(pressedSetRef.current)) {
+        releaseButton(btn);
+      }
+    };
+
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onWindowBlur);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onWindowBlur);
     };
   }, [drawerOpen, pressButton, releaseButton, speed]);
 
@@ -300,26 +333,15 @@ export function App() {
     showToast(`Speed: ${nextSpeed}×`);
   };
 
-  // Toggle Run Lock (holds B automatically for effortless one-handed sprinting)
+  // Toggle Run Lock (asserts hardware-masked L+R auto-run chord so B works normally in menus & evolutions!)
   const toggleRunLock = () => {
     unlockAudioIfNeeded();
     const next = !runLock;
     setRunLock(next);
     runLockRef.current = next;
-    const emu = emuRef.current;
-    if (emu) {
-      if (next) {
-        pressedSetRef.current.add('B');
-        emu.buttonPress('B');
-        setPressedUI((prev) => ({ ...prev, B: true }));
-      } else {
-        pressedSetRef.current.delete('B');
-        emu.buttonUnpress('B');
-        setPressedUI((prev) => ({ ...prev, B: false }));
-      }
-    }
+    syncAutoRunChord(emuRef.current);
     triggerHaptic(15);
-    showToast(next ? 'Auto-Run ON (Holding B)' : 'Auto-Run OFF');
+    showToast(next ? 'Auto-Run ON (Hold B to Walk)' : 'Auto-Run OFF');
   };
 
   // Toggle Audio Mute
@@ -548,7 +570,7 @@ export function App() {
             type="button"
             className={`util-pill ${runLock ? 'active' : ''}`}
             onClick={toggleRunLock}
-            title="Auto-hold B for Running Shoes"
+            title="Toggle Permanent Auto-Run (Hold B to Walk)"
           >
             RUN
           </button>
@@ -753,7 +775,7 @@ export function App() {
             </div>
 
             <div style={{ fontSize: 11, color: '#6b7280', textAlign: 'center' }}>
-              Desktop Keys: Arrows/WASD • Z=A • X=B • Q/E=L/R • Enter=Start • Space=4× Turbo
+              Desktop Keys: Arrows/WASD • Z/E=A • X=B • Q/R=L/R • Enter=Start • Space=4× Turbo
               <br />
               <em>&ldquo;You may be cool, but are you as cool as Commander Riker sitting down?&rdquo;</em>
             </div>
