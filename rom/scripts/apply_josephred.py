@@ -1022,7 +1022,7 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         newline="\n",
     )
 
-    # Viridian Mart: allows buying Poke Balls immediately (no parcel softlock!)
+    # Viridian Mart: reminds player about Oak's Parcel AND still sells items immediately (no parcel softlock!)
     must_replace(
         root / "data/maps/ViridianCity_Mart/scripts.inc",
         "ViridianCity_Mart_EventScript_SayHiToOak::\n"
@@ -1031,13 +1031,18 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         "\tend",
         "ViridianCity_Mart_EventScript_SayHiToOak::\n"
         "\tgoto_if_questlog EventScript_ReleaseEnd\n"
+        "\tmsgbox ViridianCity_Mart_Text_ParcelReminderShop\n"
         "\tmessage Text_MayIHelpYou\n"
         "\twaitmessage\n"
         "\tpokemart ViridianCity_Mart_Items\n"
         "\tmsgbox Text_PleaseComeAgain\n"
         "\trelease\n"
-        "\tend",
-        "Viridian Mart sells items before parcel delivery",
+        "\tend\n\n"
+        "ViridianCity_Mart_Text_ParcelReminderShop::\n"
+        '\t.string "CLERK: Don\'t forget to deliver\\n"\n'
+        '\t.string "OAK\'S PARCEL back to PALLET TOWN!\\p"\n'
+        '\t.string "Need any supplies for the walk?$"',
+        "Viridian Mart reminds about Parcel while selling items immediately",
     )
 
     # Route 1: Clerk gives Potion FIRST, then 10 Poke Balls cleanly + introduces Dick Biters
@@ -2195,8 +2200,8 @@ def patch_playable_anime_events(root: pathlib.Path) -> None:
         {
             "type": "object",
             "graphics_id": "OBJ_EVENT_GFX_MEOWTH",
-            "x": 13,
-            "y": 20,
+            "x": 11,
+            "y": 21,
             "elevation": 3,
             "movement_type": "MOVEMENT_TYPE_FACE_DOWN",
             "movement_range_x": 0,
@@ -2287,8 +2292,8 @@ def patch_playable_anime_events(root: pathlib.Path) -> None:
         {
             "type": "object",
             "graphics_id": "OBJ_EVENT_GFX_MEOWTH",
-            "x": 2,
-            "y": 18,
+            "x": 1,
+            "y": 19,
             "elevation": 3,
             "movement_type": "MOVEMENT_TYPE_FACE_UP",
             "movement_range_x": 0,

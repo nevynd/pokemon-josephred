@@ -109,6 +109,16 @@
   - **Ep. 12 (`VermilionCity` at `23,13`):** **Officer Jenny** recruiting Joseph to lead the **Lv. 16 Squirtle Squad Leader** holding `ITEM_BLACK_GLASSES` (`SQUAD SHADES`) (`FLAG_WONDER_CARD_UNUSED_6`).
   - **Ep. 21 (`VermilionCity` pier at `28,30`):** ***"Bye Bye Butterfree"*** overlook gifting `ITEM_SILVER_POWDER` + `ITEM_RARE_CANDY` (`FLAG_WONDER_CARD_UNUSED_7`), plus persistent `FLAG_WONDER_CARD_UNUSED_8` on Vermilion Harbor Bus-kun Mew.
 
+### Automated Full-Game ROM Verification Suite & Sightline Fixes (2026-11-18)
+- **Layer 1 Static ROM & ELF Verifier (`rom/scripts/verify_rom_static.py`, `rom/docker/Dockerfile`):**
+  - Integrated automated static verification directly into the Docker ROM build pipeline across all 54,303 compiled ELF symbols, 425 maps (`SaveBlock1` 64-object limit, tile bounds, `collision == 0`, warp overlap), 29 trainer sightlines, 7 2D BFS corridor reachability proofs, and 566 ASM `EventScript` blocks (checking script termination and unclosed raw `message` leaks).
+- **Trainer Sightline Walk-Collision Fixes & Viridian Mart Parcel Reminder (`rom/scripts/apply_josephred.py`):**
+  - Fixed two potential `waitmovement` trainer walk-up collisions caught by `verify_rom_static.py`: moved **Talking Meowth** out of Jessie's pre-battle sightline on `MtMoon_B2F` (`(13,20)` → `(11,21)`) and `SilphCo_11F` (`(2,18)` → `(1,19)`).
+  - Added `ViridianCity_Mart_Text_ParcelReminderShop` so the Viridian Mart clerk reminds players carrying `OAK'S PARCEL` to deliver it back to Pallet Town while still opening the shop immediately.
+- **Layer 2 High-Speed Runtime Checkpoint Suite (`scripts/verify_rom_runtime.py`, `web/src/App.tsx`):**
+  - Built an automated ~5,000-FPS headless `@thenick775/mgba-wasm` checkpoint runner inspecting live ARM7TDMI EWRAM/IWRAM state (`gbAs` serialization + `pokefirered.elf` symbol table) across all 19 end-to-end Kanto checkpoints from the Bus-kun prologue through Champion Brian.
+
+
 
 
 

@@ -11,14 +11,15 @@ h:\JPate
 ├── FEATURES.md                       # Feature tracking matrix (Rule 2 compliant)
 ├── CHANGELOG.md                      # Chronological build & lore change log
 ├── scripts/
-│   └── build-rom.ps1                 # Deterministic Docker ROM build & extraction script
+│   ├── build-rom.ps1                 # Deterministic Docker ROM build & extraction script
+│   └── verify_rom_runtime.py         # Layer 2 ~5,000-FPS live EWRAM/IWRAM 19-checkpoint verifier
 ├── rom/
 │   ├── assets/
 │   │   ├── joseph_trainer_source.jpg     # Source art for Oak Speech & Trainer Card
 │   │   └── joseph_battle_back_source.jpg # Source art for 5-frame Battle Back-Sprite
 │   ├── docker/
 │   │   ├── Dockerfile.base           # Cached Ubuntu 22.04 + agbcc + baseline pokefirered objects
-│   │   └── Dockerfile                # Incremental mod layer (~3s rebuilds)
+│   │   └── Dockerfile                # Incremental mod layer (~5s rebuilds + static verifier gate)
 │   ├── overrides/
 │   │   └── graphics/
 │   │       ├── title_screen/firered/game_title_logo.png
@@ -29,6 +30,7 @@ h:\JPate
 │   │       └── pokemon/squirtle/     # Front + back Squirtle Squad sunglasses sprites & palette
 │   ├── scripts/
 │   │   ├── apply_josephred.py        # Validated C/JSON/ASM patcher + GBA textbox width linter
+│   │   ├── verify_rom_static.py      # Layer 1 ELF, 425-map collision, sightline, BFS & ASM verifier
 │   │   ├── render_title_badge.py     # Chrome 'JOSEPHRED VERSION' title logo generator
 │   │   ├── render_squirtle_shades.py # Crisp jet-black Squirtle Squad front/back shades generator
 │   │   ├── convert_portrait.py       # Photo -> GBA 31-color 8bpp Oak Speech portrait converter
@@ -101,7 +103,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 | Opening Scene | **Bus-kun Isekai** + **EU `EUR/USD` Forex** | 3-page prologue + Prof. Oak's intro speech |
 | Buffoon Rival | **GREG** | All Rival encounters (blames lag, unplugged mice, & DNS; disqualifies himself before Champion) |
 | Recurring Menace | **STEPHANE** (male, French/African-inflected cadence) | Senior IT Admin running the enterprise merger domain migration; cross-forest trusts, 4:58 PM Friday cutovers, 15-minute replication. Encounters at Rocket Hideout B4F, PTC Windchill HQ (Silph Co. 11F), & Viridian Gym |
-| Anime Rocket Trio | **JESSIE**, **JAMES**, & **TALKING MEOWTH** | Mt. Moon B2F (`(12,20)`, `(18,27)`, `(13,20)`) & Silph Co. 11F (`(16,12)`, `(2,19)`, `(2,18)`) with canonical anime teams & Victreebel gag |
+| Anime Rocket Trio | **JESSIE**, **JAMES**, & **TALKING MEOWTH** | Mt. Moon B2F (`(12,20)`, `(18,27)`, `(11,21)`) & Silph Co. 11F (`(16,12)`, `(2,19)`, `(1,19)`) with canonical anime teams & Victreebel gag |
 | Snorlax Neighbor Boss | **ERICA L** | Celadon City Gym Leader (right next to Route 16 DNS Snorlax) |
 | Windchill Area Boss | **CHARLES B** | Saffron City Gym Leader (next door to PTC Windchill / Silph Co. 11F) |
 | Elite Four #1 | **JESSICA** | Indigo Plateau — Room 1 (Lorelei slot) |

@@ -27,6 +27,7 @@
 - **Solo-151 & Modern QoL:** `Built (Pending Approval)` — Running Shoes from step 1 (indoors + outdoors), infinite reusable TMs, level-up trade evolutions, LeafGreen exclusives merged onto Kanto routes, and wild Bulbasaur/Charmander/Squirtle.
 - **Help System Journal & Quest Log Suppression:** `Built (Pending Approval)` — Help System journal popup completely disabled in C source (`OPTIONS_BUTTON_MODE_LR`, `RunHelpSystemCallback` stub), preventing accidental interruptions during 4× play or shoulder button touch; Quest Log playback bypassed on resume.
 - **Prologue Page Flow & Text Fit:** `Built (Pending Approval)` — Formatted 3-page prologue to 5–7 lines with native newlines so all text is immediately visible without clipping, allowing `A` button to cleanly turn pages.
+- **Two-Layer Full-Game Automated ROM Verification Suite:** `Built (Pending Approval)` — Compile-time static ELF/Map/Sightline/BFS/ASM verifier (`rom/scripts/verify_rom_static.py`) paired with a ~5,000-FPS live EWRAM/IWRAM checkpoint runner (`scripts/verify_rom_runtime.py`) covering all 19 progression, anime, and boss checkpoints from Pallet Town through Champion Brian.
 
 ## Mobile Web GBA SP Shell (`/web`)
 - **JosephRed GBA SP Touch UI:** `Built (Pending Approval)` — Portrait & landscape responsive shell (`App.tsx`) with smooth thumb-slide D-Pad, A/B, L/R, Start/Select, haptics, and desktop keyboard controls (`E` to interact).

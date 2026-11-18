@@ -226,11 +226,12 @@ export function App() {
         emuRef.current = emu;
         syncAutoRunChord(emu);
 
-        // Expose minimal debug hook on window for automated Playwright verification
+        // Expose minimal debug hook on window for automated verification
         (window as unknown as Record<string, unknown>).__JOSEPHRED_EMU__ = {
           press: (b: GBAButton) => pressButton(b, false),
           release: (b: GBAButton) => releaseButton(b),
           setSpeed: (mult: number) => emu.setFastForwardMultiplier(mult),
+          ...(new URLSearchParams(window.location.search).has('__verify') ? { raw: emu } : {}),
         };
 
         setBootState('ready');

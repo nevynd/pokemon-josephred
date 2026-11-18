@@ -6,4 +6,5 @@ COPY rom/overrides /opt/josephred/overrides
 WORKDIR /opt/pokefirered
 
 RUN python3 /opt/josephred/scripts/apply_josephred.py /opt/pokefirered /opt/josephred/overrides \
-    && make -j"$(nproc)"
+    && make -j"$(nproc)" \
+    && python3 /opt/josephred/scripts/verify_rom_static.py /opt/pokefirered
