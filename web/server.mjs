@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
 
     if (reqUrl.pathname === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end('{"ok":true,"app":"pokemon-josephred"}');
+      res.end('{"ok":true,"app":"pokemon-josephred","version":"1.1"}');
       return;
     }
 

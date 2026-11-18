@@ -16,6 +16,7 @@ import {
 type EmulatorInstance = Awaited<ReturnType<typeof mGBA>>;
 type GBAButton = 'A' | 'B' | 'L' | 'R' | 'Start' | 'Select' | 'Up' | 'Down' | 'Left' | 'Right';
 
+const APP_VERSION = 'v1.1';
 const ROM_URL = '/roms/josephred.gba';
 const ROM_FILENAME = 'josephred.gba';
 const SPEEDS = [1, 2, 4] as const;
@@ -64,7 +65,7 @@ export function App() {
   const romImportInputRef = useRef<HTMLInputElement | null>(null);
 
   const [bootState, setBootState] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [bootMessage, setBootMessage] = useState<string>('Booting Pokémon JosephRed...');
+  const [bootMessage, setBootMessage] = useState<string>(`Booting Pokémon JosephRed ${APP_VERSION}...`);
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const [muted, setMuted] = useState<boolean>(false);
   const [runLock, setRunLock] = useState<boolean>(false);
@@ -207,8 +208,8 @@ export function App() {
           },
         });
 
-        setBootMessage('Loading Pokémon JosephRed Cartridge...');
-        const resp = await fetch(`${ROM_URL}?t=${Date.now()}`, { cache: 'no-store' });
+        setBootMessage(`Loading Pokémon JosephRed ${APP_VERSION} Cartridge...`);
+        const resp = await fetch(`${ROM_URL}?v=${APP_VERSION}&t=${Date.now()}`, { cache: 'no-store' });
         if (!resp.ok) {
           throw new Error(`Failed to fetch ROM (${resp.status} ${resp.statusText})`);
         }
@@ -235,6 +236,7 @@ export function App() {
         };
 
         setBootState('ready');
+        showToast(`Pokémon JosephRed ${APP_VERSION} Cartridge Loaded`);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error('[JosephRed] Boot failure:', msg);
@@ -531,7 +533,7 @@ export function App() {
           {bootState !== 'ready' && (
             <div className="lcd-overlay">
               <div style={{ fontWeight: 800, fontSize: 14, color: '#f6c453' }}>
-                POKéMON JOSEPHRED
+                POKéMON JOSEPHRED {APP_VERSION}
               </div>
               <div style={{ fontSize: 12, color: '#d1d5db' }}>{bootMessage}</div>
             </div>
@@ -540,7 +542,23 @@ export function App() {
 
         <div className="lcd-badge-bar">
           <div className="brand-engraving">
-            JOSEPH<span>RED</span> SP
+            JOSEPH<span>RED</span> SP{' '}
+            <small
+              style={{
+                fontSize: 9,
+                fontWeight: 800,
+                padding: '1px 5px',
+                marginLeft: 4,
+                borderRadius: 4,
+                background: 'rgba(246, 196, 83, 0.16)',
+                border: '1px solid rgba(246, 196, 83, 0.45)',
+                color: '#f6c453',
+                letterSpacing: '0.04em',
+                verticalAlign: 'middle',
+              }}
+            >
+              {APP_VERSION}
+            </small>
           </div>
           <div className="motto-tag">TEAMWORK MAKES THE DREAMWORK</div>
         </div>
@@ -686,7 +704,7 @@ export function App() {
             <div className="drawer-header">
               <div className="drawer-title">
                 <Settings size={16} color="#f6c453" />
-                JosephRed Save & System Deck
+                JosephRed {APP_VERSION} — Save &amp; System Deck
               </div>
               <button
                 type="button"

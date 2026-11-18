@@ -70,7 +70,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 
 | Area | Upstream File(s) | Modification |
 |---|---|---|
-| Title Screen | `graphics/title_screen/firered/game_title_logo.png` | Custom brushed-chrome **JOSEPHRED VERSION** badge in non-overlapping tile box `(176, 8, 256, 40)` |
+| Title Screen & Edition Stamp | `graphics/title_screen/firered/game_title_logo.png`, `src/main_menu.c` | Custom brushed-chrome **JOSEPHRED VERSION V1.1** badge in mapped tile box `(176, 0, 248, 40)` + `v1.1` printed on `CONTINUE` / `NEW GAME` Main Menu cards |
 | Intro Species | `src/oak_speech.c` | `INTRO_SPECIES` changed to `SPECIES_DRATINI` |
 | Player Graphics (Full Replacement) | `graphics/oak_speech/red/`, `graphics/trainers/front_pics/`, `graphics/object_events/pics/people/red_*.png`, `graphics/trainers/back_pics/red_back_pic.png`, `graphics/region_map/player_icon_red.png` | Ash completely replaced by **Joseph** across all modes: 64×96 Oak intro platform, 64×64 Trainer Card, overworld walking/running/cycling/surfing/fishing sheets, 5-frame battle back-sprite, and 16×16 Town Map head icon |
 | Default Names | `src/oak_speech.c`, `data/text/new_game_intro.inc` | Player defaults to **JOSEPH** (`JPATE` alt); Rival defaults to **GREG** (`BUFFOON` alt) |

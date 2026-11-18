@@ -4,7 +4,7 @@
 > *(Nothing is marked Complete without explicit user verification and approval.)*
 
 ## ROM Customization (`josephred.gba`)
-- **Custom Title Screen (`JOSEPHRED VERSION`):** `Built (Pending Approval)` — Metallic GBA chrome badge rendered onto FireRed's flame title screen.
+- **Custom Title Screen & Edition Stamp (`JOSEPHRED VERSION V1.1`):** `Built (Pending Approval)` — Metallic GBA chrome `JOSEPHRED VERSION V1.1` badge rendered onto FireRed's flame title screen plus `v1.1` stamped onto the in-game `CONTINUE` / `NEW GAME` Main Menu card (`src/main_menu.c`).
 - **Bus-kun Isekai Opening & Dratini Oak Speech:** `Built (Pending Approval)` — 3-page EU `EUR/USD` Forex + Coffee + Ninja Creami + Isekai Bus-kun prologue; Oak releases a Dratini and defaults player to `JOSEPH` & rival to `GREG`.
 - **Joseph Custom Photo Intro & Trainer Card Sprite:** `Built (Pending Approval)` — Custom GBA pixel-art sprite of Joseph (stockier build, fluffy forward-and-up hair, charcoal Poké Ball graphic T-shirt with no lanyard, blue jeans, coffee cup, & Poké Ball) compiled into both Oak's Intro (`64×96` 31-color) and his in-game Trainer Card (`64×64` 16-color).
 - **Full Player Avatar Replacement (Ash → Joseph):** `Built (Pending Approval)` — Replaced Ash across all game systems with Joseph: all 7 overworld movement sheets (walking, running, bike, surf, fish, item, VS Seeker) with dynamic per-frame head detection and zero cap visors, clean 5-frame mature battle back-sprite throwing animation (`joseph_battle_back_source.jpg` + 16-color palette), and 16×16 Town Map head icon.

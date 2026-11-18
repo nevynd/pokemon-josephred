@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0] - 2026-11-18
+### Added
+- **Edition `v1.1` Branding Across Game Boy Shell & GBA ROM (`rom/scripts/render_title_badge.py`, `rom/scripts/apply_josephred.py`, `web/src/App.tsx`, `web/index.html`, `web/package.json`, `web/server.mjs`):**
+  - Rendered brushed-chrome **`V1.1`** badge onto the GBA Title Screen logo (`JOSEPHRED VERSION V1.1` in `game_title_logo.png`).
+  - Stamped FireRed-blue **`v1.1`** tag into the top-right corner of the in-game `CONTINUE` and `NEW GAME` Main Menu cards (`src/main_menu.c`).
+  - Added gold `v1.1` edition badge onto the **JOSEPHRED SP** bezel, boot overlay (`POKéMON JOSEPHRED v1.1`), cartridge load toast (`Pokémon JosephRed v1.1 Cartridge Loaded`), Save & System Deck header, HTML `<title>`, `web/package.json` (`1.1.0`), and `/health` JSON (`"version": "1.1"`).
+
 ## [0.1.0] - 2026-11-16
 ### Added
 - **ROM Build Pipeline (`rom/docker`, `scripts/build-rom.ps1`):** Deterministic 2-stage Docker toolchain (`pret/agbcc` + `pret/pokefirered`) compiling `josephred.gba` in ~3s incrementally.

@@ -199,9 +199,36 @@ def render_badge(src_png: pathlib.Path, dst_png: pathlib.Path) -> None:
                     color = C_MID if color in (C_WHITE, C_BRIGHT) else C_DARK if gy == 10 else color
                 px[bx0 + lx, by0 + ly] = color
 
+    # 3) Render crisp 5px-tall chrome 'V1.1' badge into mapped top row y=1..6, x=221..246 (tiles 27..30)
+    mini_glyphs = {
+        "V": ["##.##", "##.##", "##.##", ".###.", "..#.."],
+        "1": [".##.", "###.", ".##.", ".##.", "####"],
+        ".": ["..", "..", "..", "##", "##"],
+    }
+    tag = "V1.1"
+    tx = 224
+    ty = 2
+    tag_pts: set[tuple[int, int]] = set()
+    for ch in tag:
+        g = mini_glyphs[ch]
+        gw = len(g[0])
+        for gy, row in enumerate(g):
+            for gx, c in enumerate(row):
+                if c == "#":
+                    tag_pts.add((tx + gx, ty + gy))
+        tx += gw + 1
+
+    for x, y in tag_pts:
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if 0 <= y + dy < 8 and 176 <= x + dx < 248:
+                    px[x + dx, y + dy] = C_BLACK
+    for x, y in tag_pts:
+        px[x, y] = C_WHITE if (y - ty) <= 2 else C_SILVER
+
     dst_png.parent.mkdir(parents=True, exist_ok=True)
     im.save(dst_png)
-    print(f"[OK] Rendered authentic chrome JOSEPHRED VERSION logo -> {dst_png}")
+    print(f"[OK] Rendered authentic chrome JOSEPHRED VERSION V1.1 logo -> {dst_png}")
 
 
 if __name__ == "__main__":
