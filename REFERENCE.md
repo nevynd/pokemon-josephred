@@ -74,6 +74,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 | Help System Suppression | `src/new_game.c`, `src/help_system_util.c` | Default button mode set to `OPTIONS_BUTTON_MODE_LR`; `RunHelpSystemCallback` hard-returns 0 to eliminate accidental journal popups |
 | Quest Log Flashback Bypass | `src/quest_log.c` | `TryStartQuestLogPlayback` bypasses recorded scenes and directly executes `CB2_ContinueSavedGame` |
 | Battle Back-Sprite & Palette | `graphics/trainers/back_pics/red_back_pic.png`, `graphics/trainers/palettes/red_back_pic.pal` | Custom 64×320 5-frame battle animation for Joseph (stockier build, fluffy hair, no cap, goatee shadow, charcoal T-shirt, jeans, Poké Ball throw sequence) paired with 16-color GBA palette |
+| Auto-Run & Movement Engine | `src/field_player_avatar.c`, `src/new_game.c`, `web/src/App.tsx` | Removed prerequisite flag check on `heldKeys & B_BUTTON` so sprint is active for all saves; decoupled emulator React lifecycle so toggling `RUN` never reboots game |
+| Battle Bag Direct to Balls | `src/item_menu.c`, `src/menu_helpers.c` | `CB2_BagMenuFromBattle` defaults to `OPEN_BAG_POKEBALLS`; unconditional L/R pocket switching enabled across all button modes |
+| Starter Poké Balls & Mart Flow | `src/new_game.c`, `PalletTown_ProfessorOaksLab/scripts.inc`, `ViridianCity_Mart/scripts.inc`, `Route1/scripts.inc` | Starts with 20 Poké Balls & 5 Potions; Oak gives 20 Balls with Dratini; Route 1 clerk gives 10 Balls; Viridian Mart sells inventory immediately |
+| Dick Biters Inside Joke | `src/data/text/species_names.h`, `src/data/pokemon/pokedex_entries.h`, `pokedex_text_fr.h`, `Route1/text.inc` | Rattata & Raticate renamed to **DICK BITER**; category set to `"DICK BITER"`; custom Pokédex entries & Route 1 warnings added |
+| Squirtle Squad Meme Shades | `graphics/pokemon/squirtle/front.png`, `src/data/items.json`, `src/data/pokemon/species_info.h` | Iconic sharp pointy anime sunglasses overlaid on Squirtle's battle front sprite; `ITEM_BLACK_GLASSES` renamed to `"SQUAD SHADES"` and held by wild Squirtles |
+| Classic Anime Iconic Moments | `Route4_PokemonCenter_1F/text.inc`, `CeruleanCity_Gym/text.inc`, `Route25_SeaCottage/text.inc`, `Route24/text.inc`, `CeruleanCity_PokemonCenter_1F/text.inc` | S.S. Anne Magikarp salesman scam, Misty's charred bicycle in Cerulean Gym, Bill's lighthouse giant Dragonite mystery, Camper Shane Squirtle Squad encounter, and Damian abandoning Charmander on the rock |
 
 ---
 
@@ -92,9 +98,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-rom.ps1
 | Elite Four #3 (3rd to last) | **ERIN** | Indigo Plateau — Room 3 (Agatha slot) |
 | Elite Four #4 (2nd to last) | **SONNY** | Indigo Plateau — Room 4 (Lance slot — reveals Greg failed Victory Road & Brian is Champion) |
 | League Champion (Final Boss) | **BRIAN** | Indigo Plateau — Champion's Room (competent powerhouse boss) |
-| Beverages / Healing | **HOT COFFEE** (50 HP), **ICED ESPRESSO** (60 HP), **NINJA CREAMI** (80 HP), **DARK ROAST** (Key Item) | Celadon Rooftop Breakroom Vending Machines & Saffron Outage Guards |
+| Beverages / Healing | **HOT COFFEE** (50 HP), **ICED ESPRESSO** (60 HP), **NINJA CREAMI** (80 HP), **DARK ROAST** (Key Item), **SQUAD SHADES** (Squirtle Squad held item) | Celadon Rooftop Breakroom Vending Machines, Saffron Outage Guards, & wild Squirtle on Route 24 |
 | Local Hangout | **THE FLYING SAUCER** (Beer House — 200 draught taps & UFO plates on the ceiling) | Oak's Intro, Pallet Town, Celadon City Sign, full Celadon Restaurant (`COIN CASE` hangout), & Champion Brian's victory celebration |
-| IT / Infra Gags | **PTC Windchill**, **DB Maintenance**, **DNS (`ipconfig /flushdns`)**, **Commander Riker Chair Maneuver**, **Sushi & Japan Cherry Blossoms** | Silph Co. 11F, Routes 12 & 16 Snorlax, Celadon EU Forex Desk, Gym Statues, & Hall of Fame |
+| IT / Infra Gags | **PTC Windchill**, **DB Maintenance**, **DNS (`ipconfig /flushdns`)**, **Commander Riker Chair Maneuver**, **Sushi & Japan Cherry Blossoms**, **DICK BITERS (Rattata/Raticate)** | Silph Co. 11F, Routes 12 & 16 Snorlax, Celadon EU Forex Desk, Gym Statues, Route 1 tall grass, & Hall of Fame |
+| Anime References | **Squirtle Squad**, **S.S. Anne Magikarp Salesman**, **Misty's Charred Bicycle**, **Bill's Lighthouse Giant Dragonite**, **Damian's Abandoned Charmander** | Route 24, Route 4 Pokémon Center, Cerulean Gym, Route 25 Sea Cottage, & Cerulean Pokémon Center |
 
 ---
 

@@ -60,6 +60,30 @@
   - Features Joseph's mature, stockier silhouette with broad shoulders, fluffy textured dark hair (no cap), clean goatee stubble visible in profile, solid charcoal crewneck T-shirt, and blue denim jeans.
   - 5-frame animation cycle: Frame 0 (Stance / Slide-in), Frame 1 (Wind-up), Frame 2 (High Cocked Stance), Frame 3 (Full Extension Throw), Frame 4 (Follow-through / Ready).
   - Created dedicated 16-color GBA palette `red_back_pic.pal` matching Joseph's front trainer card palette.
+- **Auto-Run & Web Shell Lifecycle Isolation (`web/src/App.tsx`, `src/field_player_avatar.c`, `src/new_game.c`):**
+  - Resolved emulator reboot bug when clicking `RUN`: decoupled `runLock` and `muted` state updates into mutable refs (`runLockRef`, `mutedRef`) and locked `boot()` `useEffect` dependencies strictly to `[]`.
+  - Patched `field_player_avatar.c` to remove the `FlagGet(FLAG_SYS_B_DASH)` prerequisite on `heldKeys & B_BUTTON`, guaranteeing holding B sprints in overworld across all save files.
+  - Updated `new_game.c` to set `FLAG_SYS_B_DASH` and grant 20 starting Poké Balls and 5 Potions at new game initialization.
+- **Battle Bag Poké Ball Pocket & Inventory Availability (`src/item_menu.c`, `src/menu_helpers.c`, `PalletTown_ProfessorOaksLab/scripts.inc`, `ViridianCity_Mart/scripts.inc`, `Route1/scripts.inc`):**
+  - Patched `CB2_BagMenuFromBattle` in `src/item_menu.c` to pass `OPEN_BAG_POKEBALLS` instead of `OPEN_BAG_LAST`, making the Bag menu open directly to Poké Balls when accessed during combat.
+  - Patched `menu_helpers.c` so `GetLRKeysPressed` and `GetLRKeysPressedAndHeld` return L/R unconditionally, enabling seamless pocket switching regardless of option button mode.
+  - Oak now grants 20 Poké Balls immediately with starter Dratini.
+  - Route 1 Mart clerk gives 10 Poké Balls with the sample Potion.
+  - Viridian City Mart unlocked so the clerk sells items immediately without requiring the parcel chore.
+- **Rattata & Raticate "Dick Biters" Inside Joke (`src/data/text/species_names.h`, `src/data/pokemon/pokedex_entries.h`, `pokedex_text_fr.h`, `Route1/text.inc`):**
+  - Renamed both Rattata and Raticate to **DICK BITER** in species names and Pokédex categories.
+  - Authored custom Pokédex descriptions detailing their fangs and notorious reputation among Joseph and IT staff.
+  - Added Route 1 dialogue from the clerk and boy NPC warning about wild Dick Biters jumping out of the tall grass.
+- **Squirtle Squad Meme Shades & SQUAD SHADES Held Item (`rom/overrides/graphics/pokemon/squirtle/front.png`, `src/data/items.json`, `src/data/pokemon/species_info.h`):**
+  - Rendered sharp, pointed anime sunglasses (Kamina / Squirtle Squad leader meme shades) directly onto Squirtle's 64×64 16-color GBA battle front sprite with white reflection glint.
+  - Rebranded `ITEM_BLACK_GLASSES` in `items.json` to `"SQUAD SHADES"` (*"Pointy shades of the SQUIRTLE SQUAD! Radiates unmatched boss energy and boosts DARK-type move damage."*).
+  - Configured wild Squirtle in `species_info.h` to hold `SQUAD SHADES`.
+- **Classic Anime / Cartoon Iconic Moments (`Route4_PokemonCenter_1F/text.inc`, `CeruleanCity_Gym/text.inc`, `Route25_SeaCottage/text.inc`, `Route24/text.inc`, `CeruleanCity_PokemonCenter_1F/text.inc`):**
+  - *S.S. Anne Magikarp Salesman (Ep. 15)*: Salesman in Route 4 Center pitches the golden egg-laying Magikarp scam.
+  - *Misty's Charred Bicycle (Ep. 1 & 2)*: Swimmer Luis and Gym Guy in Cerulean Gym reveal Misty is still furious about a kid with a Pikachu frying her bike.
+  - *Giant Dragonite at the Sea Cottage (Ep. 13)*: Bill describes the colossal dragon calling in the foggy mist at night.
+  - *Squirtle Squad Ambush (Ep. 12)*: Camper Shane on Route 24 describes the sunglasses-wearing gang and their signature Squad Shades.
+  - *Damian & Abandoned Charmander (Ep. 11)*: Damian brags at the Cerulean Pokémon Center counter about leaving his Charmander on a rock waiting in the rain.
 
 
 

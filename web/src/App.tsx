@@ -68,6 +68,8 @@ export function App() {
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const [muted, setMuted] = useState<boolean>(false);
   const [runLock, setRunLock] = useState<boolean>(false);
+  const runLockRef = useRef<boolean>(false);
+  const mutedRef = useRef<boolean>(false);
   const [pressedUI, setPressedUI] = useState<Record<string, boolean>>({});
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [lastSavedLabel, setLastSavedLabel] = useState<string>('SRAM Ready');
@@ -83,7 +85,7 @@ export function App() {
 
   const unlockAudioIfNeeded = useCallback(() => {
     const emu = emuRef.current;
-    if (!emu || muted) return;
+    if (!emu || mutedRef.current) return;
     try {
       const ctx = emu.SDL2?.audioContext;
       if (ctx && ctx.state === 'suspended') {
@@ -95,7 +97,7 @@ export function App() {
     } catch (err) {
       console.error('[JosephRed] Audio unlock error:', err);
     }
-  }, [muted]);
+  }, []);
 
   const syncSaveToIndexedDB = useCallback(async (reason: string) => {
     const emu = emuRef.current;
@@ -133,14 +135,14 @@ export function App() {
     (btn: GBAButton) => {
       const emu = emuRef.current;
       if (!emu) return;
-      if (btn === 'B' && runLock) return;
+      if (btn === 'B' && runLockRef.current) return;
       if (pressedSetRef.current.has(btn)) {
         pressedSetRef.current.delete(btn);
         emu.buttonUnpress(btn);
         setPressedUI((prev) => ({ ...prev, [btn]: false }));
       }
     },
-    [runLock],
+    [],
   );
 
   // Initialize mGBA WASM + load josephred.gba
@@ -224,7 +226,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [pressButton, releaseButton, syncSaveToIndexedDB]);
+  }, []);
 
   // Persist SRAM whenever tab hides or closes
   useEffect(() => {
@@ -303,6 +305,7 @@ export function App() {
     unlockAudioIfNeeded();
     const next = !runLock;
     setRunLock(next);
+    runLockRef.current = next;
     const emu = emuRef.current;
     if (emu) {
       if (next) {
@@ -324,6 +327,7 @@ export function App() {
     const emu = emuRef.current;
     const next = !muted;
     setMuted(next);
+    mutedRef.current = next;
     if (emu) {
       if (next) {
         emu.setVolume(0);

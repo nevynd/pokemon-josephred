@@ -154,15 +154,183 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "Quest Log trainer name decouple Champion from Rival",
     )
 
-    # 4. Running Shoes from Step 1 + Indoor Running
+    # 4. Running Shoes from Step 1 + Indoor Running + Starter Poke Balls & Potions
+    must_replace(
+        root / "src/new_game.c",
+        '#include "item.h"\n',
+        '#include "item.h"\n#include "constants/items.h"\n',
+        "Include constants/items.h in new_game.c",
+    )
     must_replace(
         root / "src/new_game.c",
         "    RunScriptImmediately(EventScript_ResetAllMapFlags);\n"
         "    StringCopy(gSaveBlock1Ptr->rivalName, rivalName);",
         "    RunScriptImmediately(EventScript_ResetAllMapFlags);\n"
         "    FlagSet(FLAG_SYS_B_DASH);\n"
+        "    AddBagItem(ITEM_POKE_BALL, 20);\n"
+        "    AddBagItem(ITEM_POTION, 5);\n"
         "    StringCopy(gSaveBlock1Ptr->rivalName, rivalName);",
-        "Enable Running Shoes from New Game start",
+        "Enable Running Shoes, 20 Poke Balls and 5 Potions from New Game start",
+    )
+    must_replace(
+        root / "src/field_player_avatar.c",
+        "    if ((heldKeys & B_BUTTON) && FlagGet(FLAG_SYS_B_DASH)\n"
+        "        && !IsRunningDisallowed(gObjectEvents[gPlayerAvatar.objectEventId].currentMetatileBehavior))",
+        "    if ((heldKeys & B_BUTTON)\n"
+        "        && !IsRunningDisallowed(gObjectEvents[gPlayerAvatar.objectEventId].currentMetatileBehavior))",
+        "Allow B-button running unconditionally across all saves",
+    )
+    must_replace(
+        root / "src/item_menu.c",
+        "void CB2_BagMenuFromBattle(void)\n"
+        "{\n"
+        "    GoToBagMenu(ITEMMENULOCATION_BATTLE, OPEN_BAG_LAST, SetCB2ToReshowScreenAfterMenu2);\n"
+        "}",
+        "void CB2_BagMenuFromBattle(void)\n"
+        "{\n"
+        "    GoToBagMenu(ITEMMENULOCATION_BATTLE, OPEN_BAG_POKEBALLS, SetCB2ToReshowScreenAfterMenu2);\n"
+        "}",
+        "Battle bag menu defaults directly to Poke Balls pocket",
+    )
+    must_replace(
+        root / "src/menu_helpers.c",
+        "u8 GetLRKeysPressed(void)\n"
+        "{\n"
+        "    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)\n"
+        "    {\n"
+        "        if (JOY_NEW(L_BUTTON))\n"
+        "            return MENU_L_PRESSED;\n"
+        "        if (JOY_NEW(R_BUTTON))\n"
+        "            return MENU_R_PRESSED;\n"
+        "    }\n"
+        "    return 0;\n"
+        "}",
+        "u8 GetLRKeysPressed(void)\n"
+        "{\n"
+        "    if (JOY_NEW(L_BUTTON))\n"
+        "        return MENU_L_PRESSED;\n"
+        "    if (JOY_NEW(R_BUTTON))\n"
+        "        return MENU_R_PRESSED;\n"
+        "    return 0;\n"
+        "}",
+        "Unconditional L/R button menu navigation",
+    )
+    must_replace(
+        root / "src/menu_helpers.c",
+        "u8 GetLRKeysPressedAndHeld(void)\n"
+        "{\n"
+        "    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_LR)\n"
+        "    {\n"
+        "        if (JOY_REPT(L_BUTTON))\n"
+        "            return MENU_L_PRESSED;\n"
+        "        if (JOY_REPT(R_BUTTON))\n"
+        "            return MENU_R_PRESSED;\n"
+        "    }\n"
+        "    return 0;\n"
+        "}",
+        "u8 GetLRKeysPressedAndHeld(void)\n"
+        "{\n"
+        "    if (JOY_REPT(L_BUTTON))\n"
+        "        return MENU_L_PRESSED;\n"
+        "    if (JOY_REPT(R_BUTTON))\n"
+        "        return MENU_R_PRESSED;\n"
+        "    return 0;\n"
+        "}",
+        "Unconditional L/R held button menu navigation",
+    )
+    must_replace(
+        root / "src/data/text/species_names.h",
+        "    [SPECIES_RATTATA] = _(\"RATTATA\"),\n"
+        "    [SPECIES_RATICATE] = _(\"RATICATE\"),",
+        "    [SPECIES_RATTATA] = _(\"DICK BITER\"),\n"
+        "    [SPECIES_RATICATE] = _(\"DICK BITER\"),",
+        "Rattata and Raticate renamed to DICK BITER",
+    )
+    must_replace(
+        root / "src/data/pokemon/pokedex_entries.h",
+        "    [NATIONAL_DEX_RATTATA] =\n"
+        "    {\n"
+        "        .categoryName = _(\"MOUSE\"),",
+        "    [NATIONAL_DEX_RATTATA] =\n"
+        "    {\n"
+        "        .categoryName = _(\"DICK BITER\"),",
+        "Rattata Pokedex category -> DICK BITER",
+    )
+    must_replace(
+        root / "src/data/pokemon/pokedex_entries.h",
+        "    [NATIONAL_DEX_RATICATE] =\n"
+        "    {\n"
+        "        .categoryName = _(\"MOUSE\"),",
+        "    [NATIONAL_DEX_RATICATE] =\n"
+        "    {\n"
+        "        .categoryName = _(\"DICK BITER\"),",
+        "Raticate Pokedex category -> DICK BITER",
+    )
+    must_replace(
+        root / "src/data/pokemon/pokedex_text_fr.h",
+        "const u8 gRattataPokedexText[] = _(\n"
+        "    \"Its fangs are long and very sharp.\\n\"\n"
+        "    \"They grow continuously, so it gnaws on\\n\"\n"
+        "    \"hard things to whittle them down.\");",
+        "const u8 gRattataPokedexText[] = _(\n"
+        "    \"Known to Joseph and IT as a\\n\"\n"
+        "    \"DICK BITER. Its sharp incisors aim\\n\"\n"
+        "    \"low and clamp down without remorse.\");",
+        "Rattata Pokedex description -> Dick Biter lore",
+    )
+    must_replace(
+        root / "src/data/pokemon/pokedex_text_fr.h",
+        "const u8 gRaticatePokedexText[] = _(\n"
+        "    \"Its rear feet have three toes each.\\n\"\n"
+        "    \"They are webbed, enabling it to swim\\n\"\n"
+        "    \"across rivers.\");",
+        "const u8 gRaticatePokedexText[] = _(\n"
+        "    \"A full-grown DICK BITER. Its webbed\\n\"\n"
+        "    \"feet and vicious jaws make it a menace\\n\"\n"
+        "    \"both on land and across rivers.\");",
+        "Raticate Pokedex description -> Dick Biter lore",
+    )
+    must_replace(
+        root / "src/data/pokemon/species_info.h",
+        "    [SPECIES_SQUIRTLE] =\n"
+        "    {\n"
+        "        .baseHP = 44,\n"
+        "        .baseAttack = 48,\n"
+        "        .baseDefense = 65,\n"
+        "        .baseSpeed = 43,\n"
+        "        .baseSpAttack = 50,\n"
+        "        .baseSpDefense = 64,\n"
+        "        .types = {TYPE_WATER, TYPE_WATER},\n"
+        "        .catchRate = 45,\n"
+        "        .expYield = 66,\n"
+        "        .evYield_HP = 0,\n"
+        "        .evYield_Attack = 0,\n"
+        "        .evYield_Defense = 1,\n"
+        "        .evYield_Speed = 0,\n"
+        "        .evYield_SpAttack = 0,\n"
+        "        .evYield_SpDefense = 0,\n"
+        "        .itemCommon = ITEM_NONE,\n"
+        "        .itemRare = ITEM_NONE,",
+        "    [SPECIES_SQUIRTLE] =\n"
+        "    {\n"
+        "        .baseHP = 44,\n"
+        "        .baseAttack = 48,\n"
+        "        .baseDefense = 65,\n"
+        "        .baseSpeed = 43,\n"
+        "        .baseSpAttack = 50,\n"
+        "        .baseSpDefense = 64,\n"
+        "        .types = {TYPE_WATER, TYPE_WATER},\n"
+        "        .catchRate = 45,\n"
+        "        .expYield = 66,\n"
+        "        .evYield_HP = 0,\n"
+        "        .evYield_Attack = 0,\n"
+        "        .evYield_Defense = 1,\n"
+        "        .evYield_Speed = 0,\n"
+        "        .evYield_SpAttack = 0,\n"
+        "        .evYield_SpDefense = 0,\n"
+        "        .itemCommon = ITEM_BLACK_GLASSES,\n"
+        "        .itemRare = ITEM_BLACK_GLASSES,",
+        "Wild Squirtle holds SQUAD SHADES",
     )
     must_replace(
         root / "src/bike.c",
@@ -384,6 +552,10 @@ def patch_items_and_wild_encounters(root: pathlib.Path) -> None:
         "ITEM_TEA": (
             "DARK ROAST",
             "An elite single-origin pour-over\\ncoffee strong enough to wake up\\nan on-call Saffron DB admin.",
+        ),
+        "ITEM_BLACK_GLASSES": (
+            "SQUAD SHADES",
+            "Pointy shades of the SQUIRTLE SQUAD!\\nRadiates unmatched boss energy and\\nboosts DARK-type move damage.",
         ),
     }
     matched = 0
@@ -640,6 +812,69 @@ def patch_intro_and_oaks_lab(root: pathlib.Path) -> None:
         "\tsetvar PLAYER_STARTER_NUM, 2\n"
         "\tsetvar PLAYER_STARTER_SPECIES, SPECIES_DRATINI",
         "Oak Ball #3 -> SPECIES_DRATINI",
+    )
+    must_replace(
+        lab_scripts,
+        "\tsetflag FLAG_SYS_POKEMON_GET\n"
+        "\tsetflag FLAG_PALLET_LADY_NOT_BLOCKING_SIGN\n"
+        "\tgivemon PLAYER_STARTER_SPECIES, 5",
+        "\tsetflag FLAG_SYS_POKEMON_GET\n"
+        "\tsetflag FLAG_PALLET_LADY_NOT_BLOCKING_SIGN\n"
+        "\tgivemon PLAYER_STARTER_SPECIES, 5\n"
+        "\tgiveitem ITEM_POKE_BALL, 20",
+        "Oak gives 20 Poke Balls with Starter",
+    )
+
+    # Viridian Mart: allows buying Poke Balls immediately (no parcel softlock!)
+    must_replace(
+        root / "data/maps/ViridianCity_Mart/scripts.inc",
+        "ViridianCity_Mart_EventScript_SayHiToOak::\n"
+        "\tmsgbox ViridianCity_Mart_Text_SayHiToOakForMe\n"
+        "\trelease\n"
+        "\tend",
+        "ViridianCity_Mart_EventScript_SayHiToOak::\n"
+        "\tgoto_if_questlog EventScript_ReleaseEnd\n"
+        "\tmessage Text_MayIHelpYou\n"
+        "\twaitmessage\n"
+        "\tpokemart ViridianCity_Mart_Items\n"
+        "\tmsgbox Text_PleaseComeAgain\n"
+        "\trelease\n"
+        "\tend",
+        "Viridian Mart sells items before parcel delivery",
+    )
+
+    # Route 1: Clerk gives 10 Poke Balls + Potion + introduces Dick Biters
+    must_replace(
+        root / "data/maps/Route1/scripts.inc",
+        "\tadditem ITEM_POTION\n"
+        "\tmsgbox Route1_Text_PutPotionAway",
+        "\tadditem ITEM_POTION\n"
+        "\tgiveitem ITEM_POKE_BALL, 10\n"
+        "\tmsgbox Route1_Text_PutPotionAway",
+        "Route 1 clerk gives 10 Poke Balls with sample Potion",
+    )
+    r1_text = root / "data/maps/Route1/text.inc"
+    replace_inc_block(
+        r1_text,
+        "Route1_Text_WorkAtPokeMartTakeSample",
+        [
+            "Hi! I work at the POKéMON MART.\p",
+            "Take this sample POTION and 10\n",
+            "POKé BALLS on the house!\p",
+            "Watch your ankles in the tall grass—\n",
+            "the wild RATTATA around here are\l",
+            "vicious! We call 'em DICK BITERS!$",
+        ],
+    )
+    replace_inc_block(
+        r1_text,
+        "Route1_Text_CanJumpFromLedges",
+        [
+            "Watch out in that tall grass!\p",
+            "Those DICK BITERS jump right out\n",
+            "and clamp down! Catch one or knock\l",
+            "it out before it gets ya!$",
+        ],
     )
 
     lab_text = root / "data/maps/PalletTown_ProfessorOaksLab/text.inc"
@@ -1394,6 +1629,120 @@ def patch_lore_and_boss_gauntlet(root: pathlib.Path) -> None:
                 "Take my Forex COIN CASE - put it\n",
                 "toward your Japan cherry blossom\l",
                 "and sushi fund!$",
+            ],
+        )
+
+    # 8. Classic Anime / Cartoon Iconic Moments
+    # Magikarp Salesman (S.S. Anne anime scam tribute)
+    r4_txt = root / "data/maps/Route4_PokemonCenter_1F/text.inc"
+    if r4_txt.exists():
+        replace_inc_block(
+            r4_txt,
+            "Route4_PokemonCenter_1F_Text_LaddieBuyMagikarpForJust500",
+            [
+                "MAN: Hey buddy! Have I got a deal!\n",
+                "Just like aboard the S.S. ANNE!\p",
+                "This MAGIKARP lays 1,000 eggs a day!\n",
+                "You'll be a millionaire in no time!\p",
+                "Only ¥500! Buy it, am I right?$",
+            ],
+        )
+        replace_inc_block(
+            r4_txt,
+            "Route4_PokemonCenter_1F_Text_PaidOutrageouslyForMagikarp",
+            [
+                "{PLAYER} fell for the classic\n",
+                "James-level S.S. ANNE scam and\l",
+                "bought the MAGIKARP for ¥500…$",
+            ],
+        )
+
+    # Misty's Charred Bicycle (Cerulean Gym anime tribute)
+    cer_gym_txt = root / "data/maps/CeruleanCity_Gym/text.inc"
+    if cer_gym_txt.exists():
+        replace_inc_block(
+            cer_gym_txt,
+            "CeruleanCity_Gym_Text_LuisPostBattle",
+            [
+                "MISTY is mad about her bike!\p",
+                "Some kid with a PIKACHU totally\n",
+                "fried it on Route 1!\p",
+                "She swore she'll make him pay if\n",
+                "it's the last thing she ever does!$",
+            ],
+        )
+        replace_inc_block(
+            cer_gym_txt,
+            "CeruleanCity_Gym_Text_GymGuyAdvice",
+            [
+                "Yo! Champ in the making!\p",
+                "MISTY uses WATER-type POKéMON.\n",
+                "ELECTRIC POKéMON will zap 'em!\p",
+                "Just word of advice... don't EVER\n",
+                "bring up charred bikes around her!$",
+            ],
+        )
+
+    # Bill's Lighthouse Giant Dragonite (Sea Cottage anime tribute)
+    bill_txt = root / "data/maps/Route25_SeaCottage/text.inc"
+    if bill_txt.exists():
+        replace_inc_block(
+            bill_txt,
+            "Route25_SeaCottage_Text_CheckOutRareMonsOnPC",
+            [
+                "BILL: Feel like checking out some\n",
+                "of my rare POKéMON on my PC?\p",
+                "You know, late at night on foggy\n",
+                "evenings, I look out at the sea...\p",
+                "A colossal, mysterious dragon\n",
+                "POKéMON calls through the fog.\p",
+                "Maybe you'll meet it someday,\n",
+                "{PLAYER}! Go on, check out my PC!$",
+            ],
+        )
+
+    # Squirtle Squad Pointy Sunglasses (Route 24 anime tribute)
+    r24_txt = root / "data/maps/Route24/text.inc"
+    if r24_txt.exists():
+        replace_inc_block(
+            r24_txt,
+            "Route24_Text_ShaneIntro",
+            [
+                "Watch out in the grass! A rowdy gang\n",
+                "of SQUIRTLE ambushed me!$",
+            ],
+        )
+        replace_inc_block(
+            r24_txt,
+            "Route24_Text_ShaneDefeat",
+            [
+                "You're tougher than those turtles!$",
+            ],
+        )
+        replace_inc_block(
+            r24_txt,
+            "Route24_Text_ShanePostBattle",
+            [
+                "They call themselves the SQUIRTLE\n",
+                "SQUAD! Their boss wears crazy pointy\l",
+                "sunglasses and blasts Water Guns!\p",
+                "If you catch one, you might snag\n",
+                "their signature SQUAD SHADES!$",
+            ],
+        )
+
+    # Damian abandons Charmander on the rock (Cerulean Center anime tribute)
+    cer_pkmn_txt = root / "data/maps/CeruleanCity_PokemonCenter_1F/text.inc"
+    if cer_pkmn_txt.exists():
+        replace_inc_block(
+            cer_pkmn_txt,
+            "CeruleanCity_PokemonCenter_1F_Text_BillDoesWhateverForRareMons",
+            [
+                "DAMIAN: Haha! Hear about that\n",
+                "weak CHARMANDER I ditched?\p",
+                "I told it to wait on that rock!\n",
+                "Gullible lizard is probably still\l",
+                "holding a leaf over its tail!$",
             ],
         )
 
