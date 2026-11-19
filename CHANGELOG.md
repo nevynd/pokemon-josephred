@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1] - 2026-11-19
+### Fixed
+- **Mute / Unmute Freeze During `2×` & `4×` Turbo (`web/src/App.tsx`):**
+  - Removed `emu.pauseAudio()` (`SDL_PauseAudioDevice(dev, 1)`) from `toggleMute` and switched to zero-gain muting (`emu.setVolume(0)` / `emu.setVolume(1.0)`) while keeping the Web Audio consumer (`AudioContext.resume()` + `emu.resumeAudio()`) active even when muted. Prevents mGBA's `updateFastForward()` (`sync.audioWait = true` when `multiplier > 1`) from filling its audio ring buffer and deadlocking the GBA CPU thread (`0 FPS`) while muted.
+  - Added `e.currentTarget.blur()` on utility pills (`Speed`, `RUN`, `Mute`) and `unlockAudioIfNeeded()` on `Spacebar` turbo so keyboard focus and Web Audio unlocking behave cleanly across all input orders.
+- **Edition `v1.1.1` Holistic Version Bump (`rom/scripts/render_title_badge.py`, `rom/scripts/apply_josephred.py`, `web/src/App.tsx`, `web/index.html`, `web/package.json`, `web/server.mjs`):**
+  - Updated GBA Title Screen chrome stamp to **`V1.1.1`**, GBA Main Menu (`CONTINUE` / `NEW GAME`) stamp to **`v1.1.1`**, Game Boy SP bezel badge & boot toast to **`v1.1.1`**, `web/package.json` to `1.1.1`, and `/health` to `"version": "1.1.1"`.
+
 ## [1.1.0] - 2026-11-18
 ### Added
 - **Edition `v1.1` Branding Across Game Boy Shell & GBA ROM (`rom/scripts/render_title_badge.py`, `rom/scripts/apply_josephred.py`, `web/src/App.tsx`, `web/index.html`, `web/package.json`, `web/server.mjs`):**

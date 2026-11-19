@@ -16,7 +16,7 @@ import {
 type EmulatorInstance = Awaited<ReturnType<typeof mGBA>>;
 type GBAButton = 'A' | 'B' | 'L' | 'R' | 'Start' | 'Select' | 'Up' | 'Down' | 'Left' | 'Right';
 
-const APP_VERSION = 'v1.1';
+const APP_VERSION = 'v1.1.1';
 const ROM_URL = '/roms/josephred.gba';
 const ROM_FILENAME = 'josephred.gba';
 const SPEEDS = [1, 2, 4] as const;
@@ -71,6 +71,7 @@ export function App() {
   const [runLock, setRunLock] = useState<boolean>(false);
   const runLockRef = useRef<boolean>(false);
   const mutedRef = useRef<boolean>(false);
+  const audioUnlockedRef = useRef<boolean>(false);
   const [pressedUI, setPressedUI] = useState<Record<string, boolean>>({});
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [lastSavedLabel, setLastSavedLabel] = useState<string>('SRAM Ready');
@@ -86,15 +87,22 @@ export function App() {
 
   const unlockAudioIfNeeded = useCallback(() => {
     const emu = emuRef.current;
-    if (!emu || mutedRef.current) return;
+    if (!emu) return;
     try {
       const ctx = emu.SDL2?.audioContext;
       if (ctx && ctx.state === 'suspended') {
         void ctx.resume().catch((err: unknown) => {
           console.error('[JosephRed] AudioContext resume error:', err);
         });
+        audioUnlockedRef.current = false;
       }
-      emu.resumeAudio();
+      if (!audioUnlockedRef.current) {
+        emu.resumeAudio();
+        emu.setVolume(mutedRef.current ? 0 : 1.0);
+        if (!ctx || ctx.state === 'running') {
+          audioUnlockedRef.current = true;
+        }
+      }
     } catch (err) {
       console.error('[JosephRed] Audio unlock error:', err);
     }
@@ -223,7 +231,7 @@ export function App() {
           throw new Error('mGBA failed to boot josephred.gba');
         }
 
-        emu.setVolume(1.0);
+        emu.setVolume(mutedRef.current ? 0 : 1.0);
         emuRef.current = emu;
         syncAutoRunChord(emu);
 
@@ -280,6 +288,7 @@ export function App() {
       if (drawerOpen) return;
       if (e.code === 'Space') {
         e.preventDefault();
+        unlockAudioIfNeeded();
         if (!e.repeat && emuRef.current) {
           emuRef.current.setFastForwardMultiplier(4);
         }
@@ -321,10 +330,11 @@ export function App() {
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onWindowBlur);
     };
-  }, [drawerOpen, pressButton, releaseButton, speed]);
+  }, [drawerOpen, pressButton, releaseButton, speed, unlockAudioIfNeeded]);
 
   // Cycle 1x -> 2x -> 4x Turbo
-  const cycleSpeed = () => {
+  const cycleSpeed = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.blur();
     unlockAudioIfNeeded();
     const nextIdx = (SPEEDS.indexOf(speed) + 1) % SPEEDS.length;
     const nextSpeed = SPEEDS[nextIdx];
@@ -337,7 +347,8 @@ export function App() {
   };
 
   // Toggle Run Lock (asserts hardware-masked L+R auto-run chord so B works normally in menus & evolutions!)
-  const toggleRunLock = () => {
+  const toggleRunLock = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.blur();
     unlockAudioIfNeeded();
     const next = !runLock;
     setRunLock(next);
@@ -347,26 +358,22 @@ export function App() {
     showToast(next ? 'Auto-Run ON (Hold B to Walk)' : 'Auto-Run OFF');
   };
 
-  // Toggle Audio Mute
-  const toggleMute = () => {
+  // Toggle Audio Mute purely via gain (never call emu.pauseAudio(), which stops SDL audio drain and deadlocks 2x/4x!)
+  const toggleMute = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.blur();
     const emu = emuRef.current;
     const next = !muted;
     setMuted(next);
     mutedRef.current = next;
     if (emu) {
-      if (next) {
-        emu.setVolume(0);
-        emu.pauseAudio();
-      } else {
-        const ctx = emu.SDL2?.audioContext;
-        if (ctx && ctx.state === 'suspended') {
-          void ctx.resume().catch((err: unknown) => {
-            console.error('[JosephRed] Audio resume failed:', err);
-          });
-        }
-        emu.resumeAudio();
-        emu.setVolume(1.0);
+      const ctx = emu.SDL2?.audioContext;
+      if (ctx && ctx.state === 'suspended') {
+        void ctx.resume().catch((err: unknown) => {
+          console.error('[JosephRed] Audio resume failed:', err);
+        });
       }
+      emu.resumeAudio();
+      emu.setVolume(next ? 0 : 1.0);
     }
     triggerHaptic(12);
   };

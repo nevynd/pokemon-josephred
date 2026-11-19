@@ -4,7 +4,7 @@
 > *(Nothing is marked Complete without explicit user verification and approval.)*
 
 ## ROM Customization (`josephred.gba`)
-- **Custom Title Screen & Edition Stamp (`JOSEPHRED VERSION V1.1`):** `Built (Pending Approval)` — Metallic GBA chrome `JOSEPHRED VERSION V1.1` badge rendered onto FireRed's flame title screen plus `v1.1` stamped onto the in-game `CONTINUE` / `NEW GAME` Main Menu card (`src/main_menu.c`).
+- **Custom Title Screen & Edition Stamp (`JOSEPHRED VERSION V1.1.1`):** `Built (Pending Approval)` — Metallic GBA chrome `JOSEPHRED VERSION V1.1.1` badge rendered onto FireRed's flame title screen plus `v1.1.1` stamped onto the in-game `CONTINUE` / `NEW GAME` Main Menu card (`src/main_menu.c`).
 - **Bus-kun Isekai Opening & Dratini Oak Speech:** `Built (Pending Approval)` — 3-page EU `EUR/USD` Forex + Coffee + Ninja Creami + Isekai Bus-kun prologue; Oak releases a Dratini and defaults player to `JOSEPH` & rival to `GREG`.
 - **Joseph Custom Photo Intro & Trainer Card Sprite:** `Built (Pending Approval)` — Custom GBA pixel-art sprite of Joseph (stockier build, fluffy forward-and-up hair, charcoal Poké Ball graphic T-shirt with no lanyard, blue jeans, coffee cup, & Poké Ball) compiled into both Oak's Intro (`64×96` 31-color) and his in-game Trainer Card (`64×64` 16-color).
 - **Full Player Avatar Replacement (Ash → Joseph):** `Built (Pending Approval)` — Replaced Ash across all game systems with Joseph: all 7 overworld movement sheets (walking, running, bike, surf, fish, item, VS Seeker) with dynamic per-frame head detection and zero cap visors, clean 5-frame mature battle back-sprite throwing animation (`joseph_battle_back_source.jpg` + 16-color palette), and 16×16 Town Map head icon.
@@ -31,7 +31,7 @@
 
 ## Mobile Web GBA SP Shell (`/web`)
 - **JosephRed GBA SP Touch UI:** `Built (Pending Approval)` — Portrait & landscape responsive shell (`App.tsx`) with smooth thumb-slide D-Pad, A/B, L/R, Start/Select, haptics, and desktop keyboard controls (`E` to interact).
-- **1× / 2× / 4× Fast-Forward & Hardware-Masked Auto-Run:** `Built (Pending Approval)` — Instant speed multiplier (`1× / 2× / 4×`) + one-tap `RUN` toggle asserting a hardware-masked `L+R` chord (`gAutoRunEnabled`) so Joseph sprints automatically (hold `B` to walk) without breaking `B` in menus or cancelling evolutions; React lifecycle isolated so toggling `RUN` never resets the emulator.
+- **1× / 2× / 4× Fast-Forward, Non-Blocking Audio Mute & Hardware-Masked Auto-Run:** `Built (Pending Approval)` — Instant speed multiplier (`1× / 2× / 4×` + `Spacebar`) paired with zero-gain audio muting (`setVolume(0)` without pausing SDL audio drain so `2×`/`4×` never stalls while muted), plus one-tap `RUN` toggle asserting a hardware-masked `L+R` chord (`gAutoRunEnabled`) so Joseph sprints automatically (hold `B` to walk) without breaking `B` in menus or cancelling evolutions.
 - **Persistent Auto-Save & Backup:** `Built (Pending Approval)` — Automatic IndexedDB SRAM sync on in-game save & tab hide, 3 quick save-state slots, `.sav` file Export/Import, and custom `.gba` loader.
 
 ## Production Hosting & Infrastructure (Railway)

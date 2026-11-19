@@ -361,7 +361,7 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         root / "src/main_menu.c",
         "static const u8 sTextColor2[] = { 10,  1, 12 };",
         "static const u8 sTextColor2[] = { 10,  1, 12 };\n"
-        "static const u8 sJosephRedVersion[] = _(\"v1.1\");",
+        "static const u8 sJosephRedVersion[] = _(\"v1.1.1\");",
         "Declare sJosephRedVersion in main_menu.c",
     )
     must_replace(
@@ -374,8 +374,8 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "    default:\n"
         "        FillWindowPixelBuffer(MAIN_MENU_WINDOW_NEWGAME_ONLY, PIXEL_FILL(10));\n"
         "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_NEWGAME_ONLY, FONT_NORMAL, 2, 2, sTextColor1, -1, gText_NewGame);\n"
-        "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_NEWGAME_ONLY, FONT_SMALL, 160, 2, sTextColor2, -1, sJosephRedVersion);",
-        "Stamp v1.1 onto Main Menu New Game card",
+        "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_NEWGAME_ONLY, FONT_SMALL, 152, 2, sTextColor2, -1, sJosephRedVersion);",
+        "Stamp v1.1.1 onto Main Menu New Game card",
     )
     must_replace(
         root / "src/main_menu.c",
@@ -387,8 +387,8 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "        FillWindowPixelBuffer(MAIN_MENU_WINDOW_CONTINUE, PIXEL_FILL(10));\n"
         "        FillWindowPixelBuffer(MAIN_MENU_WINDOW_NEWGAME, PIXEL_FILL(10));\n"
         "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_CONTINUE, FONT_NORMAL, 2, 2, sTextColor1, -1, gText_Continue);\n"
-        "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_CONTINUE, FONT_SMALL, 160, 2, sTextColor2, -1, sJosephRedVersion);",
-        "Stamp v1.1 onto Main Menu Continue card",
+        "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_CONTINUE, FONT_SMALL, 152, 2, sTextColor2, -1, sJosephRedVersion);",
+        "Stamp v1.1.1 onto Main Menu Continue card",
     )
     must_replace(
         root / "src/main_menu.c",
@@ -402,8 +402,8 @@ def patch_core_c_files(root: pathlib.Path) -> None:
         "        FillWindowPixelBuffer(MAIN_MENU_WINDOW_NEWGAME, PIXEL_FILL(10));\n"
         "        FillWindowPixelBuffer(MAIN_MENU_WINDOW_MYSTERYGIFT, PIXEL_FILL(10));\n"
         "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_CONTINUE, FONT_NORMAL, 2, 2, sTextColor1, -1, gText_Continue);\n"
-        "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_CONTINUE, FONT_SMALL, 160, 2, sTextColor2, -1, sJosephRedVersion);",
-        "Stamp v1.1 onto Main Menu Mystery Gift card",
+        "        AddTextPrinterParameterized3(MAIN_MENU_WINDOW_CONTINUE, FONT_SMALL, 152, 2, sTextColor2, -1, sJosephRedVersion);",
+        "Stamp v1.1.1 onto Main Menu Mystery Gift card",
     )
 
     # 5. Infinite Reusable TMs
